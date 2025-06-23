@@ -2,13 +2,13 @@ import React from 'react';
 import styled from 'styled-components/native';
 import colors from '../../constants/colors';
 
-const BoardScreen = () => (
+const HeartScreen = () => (
   <Container>
-    <Title>Board Screen</Title>
+    <Title>Heart Screen</Title>
   </Container>
 );
 
-export default BoardScreen;
+export default HeartScreen;
 
 const Container = styled.View`
   flex: 1;
