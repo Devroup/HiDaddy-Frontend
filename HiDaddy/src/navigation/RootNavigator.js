@@ -6,6 +6,8 @@ import HomeScreen from '../screens/home/HomeScreen';
 import TabNavigator from './TabNavigator';
 import IntroStackNavigator from './IntroStackNavigator';
 
+import MypageStackNavigator from './MypageStackNavigator';
+
 const Nav = createNativeStackNavigator();
 
 const RootNavigator = () => (
@@ -20,6 +22,8 @@ const RootNavigator = () => (
       component={IntroStackNavigator}
       initialParams={{ screen: 'LoginScreen' }}
     />
+
+    <Nav.Screen name="MypageStackNavigator" component={MypageStackNavigator} />
   </Nav.Navigator>
 );
 
