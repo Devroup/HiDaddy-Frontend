@@ -59,8 +59,8 @@
 
 | 이름 | 역할 |
 |------|------|
-| [문채영](https://github.com/your-github-mcy0325) | 인트로/로그인/메인/마이페이지 |
-| [주민재](https://github.com/your-github-Juminjae) | 마음 전하기/감정 일기/게시판 |
+| [문채영](https://github.com/mcy0325) | 인트로/로그인/메인/마이페이지 |
+| [주민재](https://github.com/Juminjae) | 마음 전하기/감정 일기/게시판 |
 
 ---
 
