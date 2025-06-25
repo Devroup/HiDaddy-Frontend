@@ -52,7 +52,7 @@ const getResponsiveCircles = () => {
     },
     {
       size: baseCircleSize,
-      bottom: -baseCircleSize * 0.6,
+      bottom: -baseCircleSize * 0.4,
       left: -screenWidth * 0.1,
     },
   ];

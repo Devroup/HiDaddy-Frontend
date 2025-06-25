@@ -1,0 +1,13 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/HancomMalangMalang-Bold.ttf",
+      "sha1": "8619cf320060e84c7fcfa90bd7cdaf4cf8f9e676"
+    },
+    {
+      "path": "src/assets/fonts/HancomMalangMalang-Regular.ttf",
+      "sha1": "a86a599ad5702625ea1a871df063c9140d9359c0"
+    }
+  ]
+}
