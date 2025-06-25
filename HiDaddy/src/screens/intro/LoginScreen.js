@@ -7,13 +7,13 @@ import colors from '../../constants/colors';
 import Background from '../../components/Background';
 
 import { HmmText, HmmBText } from '../../components/CustomText';
-4;
 
 import NaverLogo from '../../assets/imgs/icons/logo_naver';
 import KakaoLogo from '../../assets/imgs/icons/logo_kakao';
 import GoogleLogo from '../../assets/imgs/icons/logo_google';
 
 const { width } = Dimensions.get('window');
+const iconSize = Math.round(width * 0.045);
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -31,21 +31,21 @@ const LoginScreen = () => {
         <ButtonContainer>
           <NaverButton onPress={handleLogin}>
             <IconWrapper>
-              <NaverLogo width={16} height={16} />
+              <NaverLogo width={iconSize} height={iconSize} />
             </IconWrapper>
             <NaverText>네이버로 시작하기</NaverText>
           </NaverButton>
 
           <KakaoButton onPress={handleLogin}>
             <IconWrapper>
-              <KakaoLogo width={16} height={16} />
+              <KakaoLogo width={iconSize} height={iconSize} />
             </IconWrapper>
             <KakaoText>카카오로 시작하기</KakaoText>
           </KakaoButton>
 
           <GoogleButton onPress={handleLogin}>
             <IconWrapper>
-              <GoogleLogo width={16} height={16} />
+              <GoogleLogo width={iconSize} height={iconSize} />
             </IconWrapper>
             <GoogleText>구글로 시작하기</GoogleText>
           </GoogleButton>
@@ -68,9 +68,9 @@ const Content = styled.View`
 `;
 
 const Title = styled(HmmBText)`
-  font-size: ${width * 0.1};
+  font-size: ${width * 0.1}px;
   color: ${colors.black};
-  margin-bottom: ${width * 0.14};
+  margin-bottom: ${width * 0.14}px;
 `;
 
 const ButtonContainer = styled.View`
@@ -82,15 +82,14 @@ const ButtonBase = styled.TouchableOpacity`
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  height: 50px;
+  height: ${width * 0.14}px;
   border-radius: 10px;
-  padding: 0 12px;
   gap: 14px;
 `;
 
 const IconWrapper = styled.View`
-  width: 16px;
-  height: 16px;
+  width: ${iconSize}px;
+  height: ${iconSize}px;
   justify-content: center;
   align-items: center;
 `;
@@ -101,7 +100,7 @@ const NaverButton = styled(ButtonBase)`
 
 const NaverText = styled(HmmText)`
   color: white;
-  font-size: ${width * 0.045};
+  font-size: ${width * 0.045}px;
 `;
 
 const KakaoButton = styled(ButtonBase)`
@@ -110,7 +109,7 @@ const KakaoButton = styled(ButtonBase)`
 
 const KakaoText = styled(HmmText)`
   color: #000000;
-  font-size: ${width * 0.045};
+  font-size: ${width * 0.045}px;
 `;
 
 const GoogleButton = styled(ButtonBase)`
@@ -120,5 +119,5 @@ const GoogleButton = styled(ButtonBase)`
 
 const GoogleText = styled(HmmText)`
   color: #1f1f1f;
-  font-size: ${width * 0.045};
+  font-size: ${width * 0.045}px;
 `;
