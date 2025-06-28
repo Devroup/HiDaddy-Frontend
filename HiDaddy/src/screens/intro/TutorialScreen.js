@@ -11,6 +11,7 @@ import { HmmText, HmmBText } from '../../components/CustomText';
 
 import MinusIcon from '../../assets/imgs/icons/minus.svg';
 
+import TutorialImg1 from '../../assets/imgs/tutorial/tutorial_one.png';
 import TutorialImg2 from '../../assets/imgs/tutorial/tutorial_two.png';
 
 const { width } = Dimensions.get('window');
@@ -24,7 +25,7 @@ const PAGES = [
   {
     title: '감정일기와 다정한 실천으로 함께해요.',
     description: `당신이 기록한 마음을 읽고,\n지금 아내에게 가장 필요한 다정한 실천을\nAI가 제안합니다.`,
-    image: null,
+    image: TutorialImg1,
   },
   {
     title: '당신의 다정함이, 따뜻한 보상이 됩니다.',
