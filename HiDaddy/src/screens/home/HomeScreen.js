@@ -165,7 +165,7 @@ const TouchableRow = styled.TouchableOpacity`
 `;
 
 const RowText = styled(HmmBText)`
-  font-size: ${width * 0.04};
+  font-size: ${width * 0.04}px;
   color: ${colors.black};
 `;
 
@@ -189,14 +189,14 @@ const DescriptionText = styled(HmmText)`
 
 const ChatbotButton = styled.TouchableOpacity`
   position: absolute;
-  bottom: ${width * 0.08};
-  right: ${width * 0.06};
+  bottom: ${width * 0.08}px;
+  right: ${width * 0.06}px;
 `;
 
 const ChatbotCircle = styled.View`
   background-color: ${colors.white};
-  width: ${width * 0.14};
-  height: ${width * 0.14};
+  width: ${width * 0.14}px;
+  height: ${width * 0.14}px;
   border-radius: 100px;
   border: 2px solid ${colors.black};
   justify-content: center;
