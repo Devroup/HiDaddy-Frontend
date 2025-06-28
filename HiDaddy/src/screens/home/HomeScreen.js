@@ -17,7 +17,6 @@ const HomeScreen = () => {
 
   return (
     <Container>
-      {/* 배경 */}
       <SkyBackground>
         <Cloud
           style={{ position: 'absolute', top: 40, right: 20 }}
@@ -152,7 +151,7 @@ const Day = styled(HmmBText)`
 `;
 
 const Explain = styled(HmmText)`
-  font-size: ${width * 0.038};
+  font-size: ${width * 0.038}px;
   color: ${colors.black};
   line-height: 20px;
   margin-bottom: 10px;
