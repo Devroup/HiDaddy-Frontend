@@ -54,7 +54,13 @@ const HomeScreen = () => {
           새로운 생명이 싹트고 있어요.
         </Explain>
 
-        <TouchableRow onPress={() => navigation.navigate('WeekInfo')}>
+        <TouchableRow
+          onPress={() =>
+            navigation.navigate('EtcStackNavigator', {
+              screen: 'WeeklyInfoScreen',
+            })
+          }
+        >
           <RowText>주차별 정보 알아보기</RowText>
           <RightArrow width={12} height={24} />
         </TouchableRow>
@@ -76,7 +82,11 @@ const HomeScreen = () => {
         </TouchableRow>
       </Content>
 
-      <ChatbotButton onPress={() => navigation.navigate('ChatBotScreen')}>
+      <ChatbotButton
+        onPress={() =>
+          navigation.navigate('EtcStackNavigator', { screen: 'ChatBotScreen' })
+        }
+      >
         <ChatbotCircle>
           <Bot width={32} height={32} />
         </ChatbotCircle>

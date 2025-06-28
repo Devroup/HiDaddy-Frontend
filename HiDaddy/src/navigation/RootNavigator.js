@@ -2,10 +2,10 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import HomeScreen from '../screens/home/HomeScreen';
-import ChatBotScreen from '../screens/home/ChatBotScreen';
 
 import TabNavigator from './TabNavigator';
 import IntroStackNavigator from './IntroStackNavigator';
+import EtcStackNavigator from './EtcStackNavigator';
 
 import MypageStackNavigator from './MypageStackNavigator';
 
@@ -24,8 +24,7 @@ const RootNavigator = () => (
       initialParams={{ screen: 'LoginScreen' }}
     />
 
-    <Nav.Screen name="ChatBotScreen" component={ChatBotScreen} />
-
+    <Nav.Screen name="EtcStackNavigator" component={EtcStackNavigator} />
     <Nav.Screen name="MypageStackNavigator" component={MypageStackNavigator} />
   </Nav.Navigator>
 );
