@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import BackIcon from '../assets/imgs/icons/left_arrow.svg';
+import BackIcon from '../assets/imgs/icons/back.svg';
 
 const { width, height } = Dimensions.get('window');
 
