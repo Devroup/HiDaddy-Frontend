@@ -29,7 +29,7 @@ const PAGES = [
   },
   {
     title: '당신의 다정함이, 따뜻한 보상이 됩니다.',
-    description: `사랑을 실천한 만큼,\n리워드로 가족에게 선물도 전달할 수 있어요.`,
+    description: `사랑을 실천한 만큼,\n그 마음이 소중한 리워드가 되어\n가족에게 특별한 선물이 될 수 있어요.`,
     image: TutorialImg2,
   },
 ];
@@ -278,5 +278,5 @@ const TutorialImage = styled.Image`
   border-radius: 500px;
   border-width: 2px;
   border-color: ${colors.black};
-  margin-top: ${width * 0.22}px;
+  margin-top: ${width * 0.18}px;
 `;
