@@ -7,7 +7,7 @@ const MissionInfoScreen = () => (
   <Wrapper>
     <Background />
     <Content>
-      <Title>Mission Info Screen</Title>
+      <Title>오늘의 마음 전하기, {'n'} 이렇게 진행되요!</Title>
     </Content>
   </Wrapper>
 );
