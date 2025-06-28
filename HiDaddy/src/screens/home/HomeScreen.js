@@ -75,7 +75,11 @@ const HomeScreen = () => {
         </DescriptionText>
 
         <TouchableRow
-          onPress={() => navigation.navigate('MissionDetailScreen')}
+          onPress={() =>
+            navigation.navigate('MissionStackNavigator', {
+              screen: 'MissionScreen',
+            })
+          }
         >
           <RowText>오늘의 마음 전하기</RowText>
           <RightArrow width={12} height={24} />
