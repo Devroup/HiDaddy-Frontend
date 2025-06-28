@@ -4,6 +4,7 @@ import { Dimensions, ScrollView, KeyboardAvoidingView } from 'react-native';
 
 import colors from '../../constants/colors';
 import Background from '../../components/Background';
+import BackButton from '../../components/BackButton';
 import { HmmText, HmmBText } from '../../components/CustomText';
 
 import Bot from '../../assets/imgs/icons/bot.svg';
