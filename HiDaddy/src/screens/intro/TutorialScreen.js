@@ -216,12 +216,14 @@ const NextText = styled(HmmBText)`
 `;
 
 const FormContainer = styled.View`
-  width: 80%;
+  width: 100%;
   justify-content: center;
+  align-items: center;
   margin-top: ${width * 0.12}px;
 `;
 
 const InputBox = styled.View`
+  width: ${width * 0.6}px;
   border-width: 1px;
   border-color: ${colors.black};
   border-radius: 8px;
