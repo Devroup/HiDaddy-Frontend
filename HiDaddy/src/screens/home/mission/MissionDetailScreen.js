@@ -2,12 +2,13 @@ import React from 'react';
 import styled from 'styled-components/native';
 import colors from '../../../constants/colors';
 import Background from '../../../components/Background';
+import { HmmBText } from '../../../components/CustomText';
 
 const MissionDetailScreen = () => (
   <Wrapper>
     <Background />
     <Content>
-      <Title>Mission Detail Screen</Title>
+      <Title>오늘의 마음 전하기</Title>
     </Content>
   </Wrapper>
 );
@@ -19,13 +20,12 @@ const Wrapper = styled.View`
 `;
 
 const Content = styled.View`
-  flex: 1;
+  flex:1;
   justify-content: center;
   align-items: center;
 `;
 
-const Title = styled.Text`
+const Title = styled(HmmBText)`
   font-size: 24px;
-  font-weight: bold;
   color: ${colors.black};
 `;
