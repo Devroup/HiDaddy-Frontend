@@ -1,14 +1,21 @@
 import React from 'react';
 import styled from 'styled-components/native';
+
 import colors from '../../../constants/colors';
 import Background from '../../../components/Background';
-import { HmmBText } from '../../../components/CustomText';
+
+import HeartYellow from '../../../assets/imgs/icons/heart_yellow.svg';
+import { HmmText, HmmBText } from '../../../components/CustomText';
+import { Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
 
 const MissionDetailScreen = () => (
   <Wrapper>
     <Background />
     <Content>
-      <Title>오늘의 마음 전하기</Title>
+      <HeartYellow width={24} height={24}/>
+      <Title>어쩌구 저쩌구하기</Title>
     </Content>
   </Wrapper>
 );
@@ -20,9 +27,7 @@ const Wrapper = styled.View`
 `;
 
 const Content = styled.View`
-  flex:1;
-  justify-content: center;
-  align-items: center;
+  padding: ${width * 0.07}px;
 `;
 
 const Title = styled(HmmBText)`

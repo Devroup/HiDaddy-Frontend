@@ -46,10 +46,16 @@ const MissionScreen = () => {
                     <SectionTitle>전달한 마음 목록</SectionTitle>
                 </MissionDoneTitle>
                 <MissionDoneList>
-                    <DoneListRow>
-                        <DoneListText>어쩌구 저쩌구 하기</DoneListText>
-                        <RightArrow width={20} height={20}/>
-                    </DoneListRow>
+                    <TouchableRow
+                        onPress={() =>
+                            navigation.navigate('MissionDetailScreen')
+                        }
+                    >
+                        <DoneListRow>
+                            <DoneListText>어쩌구 저쩌구 하기</DoneListText>
+                            <RightArrow width={20} height={20}/>
+                        </DoneListRow>
+                    </TouchableRow>
                     <DoneListRow>
                         <DoneListText>어쩌구 저쩌구 하기</DoneListText>
                         <RightArrow width={20} height={20}/>
