@@ -36,7 +36,7 @@ const HeaderContainer = styled.View`
 `;
 
 const HeaderTitle = styled(HmmBText)`
-  font-size: ${width * 0.05};
+  font-size: ${width * 0.05}px;
   color: ${colors.black};
 `;
 
@@ -47,11 +47,11 @@ const Content = styled.View`
 `;
 
 const Message = styled(HmmText)`
-  font-size: ${width * 0.045};
+  font-size: ${width * 0.045}px;
   color: ${colors.black};
 `;
 
 const Bold = styled(HmmBText)`
-  font-size: ${width * 0.045};
+  font-size: ${width * 0.045}px;
   color: ${colors.black};
 `;
