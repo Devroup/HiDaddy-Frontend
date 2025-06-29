@@ -57,7 +57,12 @@ const MissionPerformScreen = () => (
           <TitleText>어떤 마음으로 전했나요?</TitleText>
         </MissionPerformMemoTitle>
         <MissionPerformMemoInfo>
-          <InfoText>사진으로 다 못 전한 마음이 있다면, 여기에 적어주세요</InfoText>
+          <InfoInput
+            placeholder="사진으로 다 못 전한 마음이 있다면, 여기에 적어주세요"
+            placeholderTextColor="#999"
+            multiline={true}
+            textAlignVertical="top"
+          />
         </MissionPerformMemoInfo>
       </MissionPerformMemo>
     </Content>
@@ -152,4 +157,7 @@ const MissionPerformMemoTitle = styled.View`
 `;
 
 const MissionPerformMemoInfo = styled.View`
+`;
+
+const InfoInput = styled.TextInput`
 `;
