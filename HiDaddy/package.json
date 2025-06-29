@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@react-native-community/datetimepicker": "^8.4.2",
+    "@react-native-community/datetimepicker": "github:react-native-community/datetimepicker",
     "@react-native/new-app-screen": "0.80.0",
     "@react-navigation/bottom-tabs": "^7.4.1",
     "@react-navigation/native": "^7.1.14",
