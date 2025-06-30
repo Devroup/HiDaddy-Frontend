@@ -61,7 +61,7 @@ const HomeScreen = () => {
           }
         >
           <RowText>주차별 정보 알아보기</RowText>
-          <RightArrow width={12} height={24} />
+          <RightArrow width={24} height={24} />
         </TouchableRow>
       </TextBox>
 
@@ -81,7 +81,7 @@ const HomeScreen = () => {
           }
         >
           <RowText>오늘의 마음 전하기</RowText>
-          <RightArrow width={12} height={24} />
+          <RightArrow width={24} height={24} />
         </TouchableRow>
       </Content>
 
@@ -159,7 +159,6 @@ const Explain = styled(HmmText)`
 
 const TouchableRow = styled.TouchableOpacity`
   flex-direction: row;
-  align-items: center;
   gap: 6px;
 `;
 
