@@ -149,6 +149,7 @@ const InfoText = styled(HmmText)`
 `;
 
 const KeywordList = styled.View`
+  justify-content: center;
   flex-direction: row;
   align-item: center;
   margin-top: 10px;
