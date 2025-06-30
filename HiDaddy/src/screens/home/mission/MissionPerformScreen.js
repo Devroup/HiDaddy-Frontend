@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components/native';
-import { Dimensions } from 'react-native';
+import { Dimensions, Touchable } from 'react-native';
 
 import colors from '../../../constants/colors';
 import Background from '../../../components/Background';
@@ -9,10 +9,14 @@ import HeartYellow from '../../../assets/imgs/icons/heart_yellow.svg';
 import Info from '../../../assets/imgs/icons/info.svg';
 import Camera from '../../../assets/imgs/icons/camera.svg';
 import { HmmText, HmmBText } from '../../../components/CustomText';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
-const MissionPerformScreen = () => (
+const MissionPerformScreen = () => {
+  const navigation = useNavigation();
+
+  return(
   <Wrapper>
     <Background />
     <Content>
@@ -20,7 +24,13 @@ const MissionPerformScreen = () => (
         <MisssionPerformTitle>
           <HeartYellow width={24} height={24}/>
           <SectionTitle>아내에게 꽃을 선물하세요</SectionTitle>
-          <Info width={24} height={24}/>
+          <Touchablecolumn
+            onPress={()=> 
+              navigation.navigate("MissionInfoScreen")
+            }
+          >
+            <Info width={24} height={24}/>
+          </Touchablecolumn>
         </MisssionPerformTitle>
         <MissionPerformInfo>
           <PerformText>오늘하루 수고한 아내에게 꽃다발을 선물해보세요.</PerformText>
@@ -67,7 +77,8 @@ const MissionPerformScreen = () => (
       </MissionPerformMemo>
     </Content>
   </Wrapper>
-);
+  );
+};
 
 export default MissionPerformScreen;
 
@@ -92,6 +103,9 @@ const SectionTitle = styled(HmmBText)`
     font-size: ${width * 0.05}px;
     color: ${colors.black};
     margin-bottom: 10px;
+`;
+
+const Touchablecolumn = styled.TouchableOpacity`
 `;
 
 const MissionPerformInfo = styled.View`
