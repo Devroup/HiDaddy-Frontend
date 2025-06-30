@@ -6,6 +6,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import Background from '../../components/Background';
 import colors from '../../constants/colors';
 import { HmmText, HmmBText } from '../../components/CustomText';
+import CustomModal from '../../components/CustomModal';
 
 import UserIcon from '../../assets/imgs/icons/myprofile.svg';
 import EditIcon from '../../assets/imgs/icons/edit.svg';
@@ -14,6 +15,7 @@ import CoinIcon from '../../assets/imgs/icons/coin.svg';
 const { width, height } = Dimensions.get('window');
 
 const MypageScreen = ({ navigation: { navigate } }) => {
+  const [withdrawalVisible, setWithdrawalVisible] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
 
   const handleChangeProfileImage = () => {
@@ -67,9 +69,10 @@ const MypageScreen = ({ navigation: { navigate } }) => {
           >
             <MenuText>아이 프로필</MenuText>
           </MenuItem>
-          <MenuItem>
+          <MenuItem onPress={() => setWithdrawalVisible(true)}>
             <MenuText>회원탈퇴</MenuText>
           </MenuItem>
+
           <MenuItem>
             <MenuText>로그아웃</MenuText>
           </MenuItem>
@@ -90,6 +93,28 @@ const MypageScreen = ({ navigation: { navigate } }) => {
           </MenuItem>
         </MenuContainer>
       </Content>
+
+      <CustomModal
+        visible={withdrawalVisible}
+        title="정말 탈퇴하시겠습니까?"
+        content={
+          <>
+            탈퇴 버튼 선택 시 계정은 삭제되며{'\n'}
+            복구되지 않습니다.
+          </>
+        }
+        confirmText="탈퇴"
+        cancelText="취소"
+        confirmButtonColor={colors.red}
+        cancelButtonColor={colors.white}
+        cancelTextColor={colors.black}
+        onConfirm={() => {
+          // 탈퇴 로직 추가
+          console.log('탈퇴 진행');
+          setWithdrawalVisible(false);
+        }}
+        onCancel={() => setWithdrawalVisible(false)}
+      />
     </Wrapper>
   );
 };
