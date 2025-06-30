@@ -49,7 +49,7 @@ const MissionStackNavigator = () => (
     <Stack.Screen
       name="MissionInfoScreen"
       component={MissionInfoScreen}
-      options={{ title: '오늘의 마음 전하기' }}
+      options={{ title: '' }}
     />
   </Stack.Navigator>
 );
