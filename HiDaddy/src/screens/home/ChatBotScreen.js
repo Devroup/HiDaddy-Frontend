@@ -4,29 +4,111 @@ import { Dimensions, ScrollView, KeyboardAvoidingView } from 'react-native';
 
 import colors from '../../constants/colors';
 import Background from '../../components/Background';
-import BackButton from '../../components/BackButton';
 import { HmmText, HmmBText } from '../../components/CustomText';
 
 import Bot from '../../assets/imgs/icons/bot.svg';
 import SendButton from '../../assets/imgs/icons/send.svg';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const ChatBotScreen = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef(null);
+  const ws = useRef(null);
+  const [isWsReady, setIsWsReady] = useState(false);
 
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
 
-  const handleSend = () => {
-    const trimmed = message.trim();
-    if (!trimmed) return;
+  // 봇 응답 실시간 업데이트
+  const updateLastBotMessage = newChunk => {
+    setMessages(prev => {
+      const newMessages = [...prev];
+      const lastMessage = newMessages[newMessages.length - 1];
 
-    setMessages(prev => [...prev, { role: 'user', content: trimmed }]);
+      if (lastMessage && lastMessage.role === 'bot') {
+        lastMessage.content += newChunk;
+      } else {
+        newMessages.push({ role: 'bot', content: newChunk });
+      }
+
+      return newMessages;
+    });
+  };
+
+  useEffect(() => {
+    const socket = new WebSocket(
+      'https://web-production-c949f.up.railway.app/ws/chat',
+    );
+
+    socket.onopen = () => {
+      console.log('WebSocket 연결됨');
+      setIsWsReady(true);
+    };
+
+    socket.onmessage = event => {
+      try {
+        const data = JSON.parse(event.data);
+
+        if (data.type === 'chunk') {
+          updateLastBotMessage(data.content);
+        } else if (data.type === 'end') {
+          console.log('메시지 끝!');
+        } else if (data.type === 'error') {
+          console.error('챗봇 오류:', data.content);
+          updateLastBotMessage('\n\n죄송합니다. 오류가 발생했어요.');
+        }
+      } catch (e) {
+        console.error('JSON 파싱 오류:', e);
+      }
+    };
+
+    socket.onerror = error => {
+      console.error('WebSocket 에러:', error);
+    };
+
+    socket.onclose = () => {
+      console.log('WebSocket 연결 종료');
+      setIsWsReady(false);
+    };
+
+    ws.current = socket;
+
+    return () => {
+      socket.close();
+    };
+  }, []);
+
+  const handleSend = userMessage => {
+    if (!userMessage.trim()) return;
+
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setMessage('');
+    setIsLoading(true);
+
+    setMessages(prev => [...prev, { role: 'bot', content: '' }]);
+
+    if (isWsReady && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(
+        JSON.stringify({
+          message: userMessage,
+          user_id: null,
+        }),
+      );
+    } else {
+      console.error('WebSocket이 아직 연결되지 않았습니다.');
+      setMessages(prev => [
+        ...prev.slice(0, -1),
+        {
+          role: 'bot',
+          content: '연결이 아직 준비되지 않았어요. 잠시 후 다시 시도해주세요.',
+        },
+      ]);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -93,9 +175,9 @@ const ChatBotScreen = () => {
             placeholderTextColor={colors.gray300}
             value={message}
             onChangeText={setMessage}
-            onSubmitEditing={handleSend}
+            onSubmitEditing={e => handleSend(e.nativeEvent.text)}
           />
-          <SendButtonWrapper onPress={handleSend}>
+          <SendButtonWrapper onPress={() => handleSend(message)}>
             <SendButton width={24} height={24} />
           </SendButtonWrapper>
         </InputRow>
