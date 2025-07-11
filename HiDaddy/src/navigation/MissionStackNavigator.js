@@ -9,6 +9,7 @@ import MissionInfoScreen from '../screens/home/mission/MissionInfoScreen';
 
 import colors from '../constants/colors';
 import BackButton from '../components/BackButton';
+import ConfirmButton from '../components/ConfirmButton';
 
 const { width, height } = Dimensions.get('window');
 
@@ -44,7 +45,7 @@ const MissionStackNavigator = () => (
     <Stack.Screen
       name="MissionPerformScreen"
       component={MissionPerformScreen}
-      options={{ title: '오늘의 마음 전하기' }}
+      options={{ title: '오늘의 마음 전하기', headerRight: () => <ConfirmButton/> }}
     />
     <Stack.Screen
       name="MissionInfoScreen"

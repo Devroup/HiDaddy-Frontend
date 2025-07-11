@@ -98,6 +98,7 @@ const MissionConfirmKeyWord = styled.View`
 
 const KeywordTitle = styled(HmmBText)`
   font-size: ${width*0.04}px;
+  margin-top: 20px;
 `;
 
 const KeywordListRow = styled.View`

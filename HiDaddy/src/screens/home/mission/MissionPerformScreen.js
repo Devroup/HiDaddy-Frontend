@@ -23,8 +23,10 @@ const MissionPerformScreen = () => {
     <Content>
       <MissionPerformMain>
         <MisssionPerformTitle>
-          <HeartYellow width={24} height={24}/>
-          <SectionTitle>아내에게 꽃을 선물하세요</SectionTitle>
+          <Left>
+            <HeartYellow width={24} height={24}/>
+            <SectionTitle>아내에게 꽃을 선물하세요</SectionTitle>
+          </Left>
           <Touchablecolumn
             onPress={()=> 
               navigation.navigate("MissionInfoScreen")
@@ -33,9 +35,9 @@ const MissionPerformScreen = () => {
             <Info width={24} height={24}/>
           </Touchablecolumn>
         </MisssionPerformTitle>
-        <MissionPerformInfo>
+        <MissionPerform>
           <PerformText>오늘하루 수고한 아내에게 꽃다발을 선물해보세요.</PerformText>
-        </MissionPerformInfo>
+        </MissionPerform>
       </MissionPerformMain>
 
       <MissionPerformPhoto>
@@ -107,9 +109,16 @@ const MissionPerformMain = styled.View`
   flex-direction: column;
 `;
 
+const Left = styled.View`
+  flex-direction: row;
+  align-items: center;
+  gap: ${width*0.02}px;
+`;
+
 const MisssionPerformTitle = styled.View`
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
 `;
 
 const SectionTitle = styled(HmmBText)`
@@ -121,8 +130,7 @@ const SectionTitle = styled(HmmBText)`
 const Touchablecolumn = styled.TouchableOpacity`
 `;
 
-const MissionPerformInfo = styled.View`
-  
+const MissionPerform = styled.View`
 `;
 
 const PerformText = styled(HmmText)`
