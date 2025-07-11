@@ -28,7 +28,7 @@ const BoardScreen = () => {
           <Touchable
             onPress={() =>
               navigation.navigate('CommunityStackNavigator', {
-                Screen: 'BoardWriteScreen'
+                screen: 'BoardWriteScreen'
               })
             }
             >
@@ -38,7 +38,7 @@ const BoardScreen = () => {
       </CommunityMain>
       <CommunityMainProfile>
           <MainProfileIMG>
-            <Profile width={20} height={20}/>
+            <Profile width={30} height={30}/>
           </MainProfileIMG>
           <MainProfileText>
             <ProfileId>
@@ -53,9 +53,17 @@ const BoardScreen = () => {
         </CommunityMainProfile>
 
         <CommunityMainContent>
+          <Touchable
+            onPress={() => 
+              navigation.navigate('CommunityStackNavigator', {
+                screen: 'BoardDetailScreen'
+              })
+            }
+          >
           <ContentText>
             나는 할 말이 없다. 왜냐하면 할 말이 없기 때문이다. 그러나 어쩔 수 없이 할 말을 적어야한다. 임시로 일단 적어 놓아야 디자인을 하던가 말던가 하기 때문이다. 근데 진짜 할 말이 없다. 아 할 말 있다. 집이 최고다.
           </ContentText>
+          </Touchable>
         </CommunityMainContent>
         <CommunityMainImage>
 
@@ -119,6 +127,9 @@ const CommunityMainProfile = styled.View`
 `;
 
 const MainProfileIMG = styled.View`
+  border-radius: 100px;  
+  background-color: ${colors.gray100};
+  border: 2px solid ${colors.black};
 `;
 
 const MainProfileText = styled.View`

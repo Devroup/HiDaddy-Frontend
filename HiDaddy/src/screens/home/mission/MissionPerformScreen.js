@@ -8,6 +8,7 @@ import Background from '../../../components/Background';
 import HeartYellow from '../../../assets/imgs/icons/heart_yellow.svg';
 import Info from '../../../assets/imgs/icons/info.svg';
 import Camera from '../../../assets/imgs/icons/camera.svg';
+import HeartCheck from '../../../assets/imgs/icons/heart_check.svg';
 import { HmmText, HmmBText } from '../../../components/CustomText';
 import { useNavigation } from '@react-navigation/native';
 
@@ -75,6 +76,18 @@ const MissionPerformScreen = () => {
           />
         </MissionPerformMemoInfo>
       </MissionPerformMemo>
+      
+      <AiButton
+        onPress={()=>
+          navigation.navigate('', {
+            screen: ''
+          })
+        }
+      >
+        <AiCircle>
+          <HeartCheck width={32} height={32}/>
+        </AiCircle>
+      </AiButton>
     </Content>
   </Wrapper>
   );
@@ -175,4 +188,22 @@ const MissionPerformMemoInfo = styled.View`
 `;
 
 const InfoInput = styled.TextInput`
+`;
+
+const AiButton = styled.TouchableOpacity`
+  position: absolute;
+  bottom: ${width * 0.01}px;
+  right: ${width * 0.06}px;
+`;
+
+const AiCircle = styled.View`
+  top: ${width*0.6}px;
+  background-color: ${colors.white};
+  width: ${width * 0.14}px;
+  height: ${width * 0.14}px;
+  border-radius: 100px;
+  border: 2px solid ${colors.black};
+  justify-content: center;
+  align-items: center;
+  elevation: 4;
 `;
