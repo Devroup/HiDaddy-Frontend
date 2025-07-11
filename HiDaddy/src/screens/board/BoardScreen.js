@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import colors from '../../constants/colors';
 import Background from '../../components/Background';
 
-import Write from '../../assets/imgs/icons/edit.svg';
+import Write from '../../assets/imgs/icons/write.svg';
 import Profile from '../../assets/imgs/icons/myprofile.svg';
 import EmptyHeartlike from '../../assets/imgs/icons/heart_red_empty.svg';
 import Comment from '../../assets/imgs/icons/comment.svg';
