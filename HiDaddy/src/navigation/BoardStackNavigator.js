@@ -12,7 +12,7 @@ const { width, height } = Dimensions.get('window');
 
 const Stack = createStackNavigator();
 
-const CommunityStackNavigator = () => (
+const BoardStackNavigator = () => (
     <Stack.Navigator
         screenOptions={{
             headerShown: true,
@@ -42,4 +42,4 @@ const CommunityStackNavigator = () => (
   </Stack.Navigator>
 );
 
-export default CommunityStackNavigator;
+export default BoardStackNavigator;

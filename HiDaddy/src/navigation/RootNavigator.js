@@ -7,8 +7,8 @@ import TabNavigator from './TabNavigator';
 import IntroStackNavigator from './IntroStackNavigator';
 import EtcStackNavigator from './EtcStackNavigator';
 import MissionStackNavigator from './MissionStackNavigator';
-import CommunityStackNavigator from './CommunityStackNavigator';
 import MypageStackNavigator from './MypageStackNavigator';
+import BoardStackNavigator from './BoardStackNavigator';
 
 const Nav = createNativeStackNavigator();
 
@@ -30,7 +30,7 @@ const RootNavigator = () => (
       component={MissionStackNavigator}
     />
 
-    <Nav.Screen name="CommunityStackNavigator" component={CommunityStackNavigator} />
+    <Nav.Screen name="BoardStackNavigator" component={BoardStackNavigator} />
 
     <Nav.Screen name="MypageStackNavigator" component={MypageStackNavigator} />
   </Nav.Navigator>
