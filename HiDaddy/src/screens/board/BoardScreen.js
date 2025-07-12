@@ -27,7 +27,7 @@ const BoardScreen = () => {
           <MainTitle>아빠들의 이야기</MainTitle>
           <Touchable
             onPress={() =>
-              navigation.navigate('CommunityStackNavigator', {
+              navigation.navigate('BoardStackNavigator', {
                 screen: 'BoardWriteScreen'
               })
             }
@@ -55,7 +55,7 @@ const BoardScreen = () => {
         <CommunityMainContent>
           <Touchable
             onPress={() => 
-              navigation.navigate('CommunityStackNavigator', {
+              navigation.navigate('BoardStackNavigator', {
                 screen: 'BoardDetailScreen'
               })
             }
