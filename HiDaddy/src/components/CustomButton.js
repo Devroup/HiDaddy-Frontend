@@ -1,35 +1,39 @@
 import React from 'react';
-import { TouchableOpacity, Dimensions } from 'react-native';
+import { Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import styled from 'styled-components';
-
+import colors from '../constants/colors';
 import { HmmBText } from './CustomText';
 
 const { width, height } = Dimensions.get('window');
 
-const CustomButton = ({ onPress,
+const CustomButton = ({
+  onPress,
   title = '완료',
-  backgroundColor = '#302525',
-  textColor = '#fff',
-}) => {    
-    const navigation = useNavigation();
+  backgroundColor = colors.black,
+  textColor = colors.white,
+}) => {
+  const navigation = useNavigation();
 
-    const handlePress = () => {
-        onPress ? onPress() : navigation.goBack();
-    };
-    return(
-        <Wrapper>
-            <Button onPress={handlePress} backgroundColor={backgroundColor}>
-                <Text textColor={textColor}>{title}</Text>
-            </Button>
-        </Wrapper>
-    );
+  const handlePress = () => {
+    onPress ? onPress() : navigation.goBack();
+  };
+  return (
+    <Wrapper>
+      <Button onPress={handlePress} backgroundColor={backgroundColor}>
+        <Text textColor={textColor}>{title}</Text>
+      </Button>
+    </Wrapper>
+  );
 };
 
 export default CustomButton;
 
 const Wrapper = styled.View`
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 `;
 
 const Button = styled.TouchableOpacity`
@@ -37,14 +41,11 @@ const Button = styled.TouchableOpacity`
   padding-vertical: 10px;
   padding-horizontal: 20px;
   border-radius: 10px;
-  margin-right: ${width * 0.05}px;
-  padding-left: ${width * 0.06}px;
   margin-top: ${height * 0.03}px;
+  margin-right: ${width * 0.06}px;
 `;
 
-const Text = styled.Text`
+const Text = styled(HmmBText)`
   color: ${props => props.textColor};
-  font-size: 10px;
-  font-weight: 500;
-  text-align: center;
+  font-size: ${width * 0.034}px;
 `;
