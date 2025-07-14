@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components/native';
-import { Dimensions, Touchable } from 'react-native';
+import { Dimensions } from 'react-native';
 
 import colors from '../../../constants/colors';
 import Background from '../../../components/Background';

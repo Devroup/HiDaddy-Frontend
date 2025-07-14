@@ -1,11 +1,10 @@
-import React from "react";
+import React, {useState, useEffect } from "react";
 import styled from "styled-components";
 
 import colors from "../../constants/colors";
-import { Dimensions } from "react-native";
+import { Dimensions, KeyboardAvoidingView } from "react-native";
 
 import Dot from '../../assets/imgs/icons/dots.svg';
-import Write from '../../assets/imgs/icons/edit.svg';
 import Profile from '../../assets/imgs/icons/myprofile.svg';
 import EmptyHeartlike from '../../assets/imgs/icons/heart_red_empty.svg';
 import Comment from '../../assets/imgs/icons/comment.svg';
@@ -72,20 +71,20 @@ const BoardDetailScreen = () => {
 export default BoardDetailScreen;
 
 const Wrapper = styled.View`
-    flex: 1;
-    background-color: ${colors.white};
+  flex: 1;
+  background-color: ${colors.white};
 `;
 
 const Content = styled.View`
-    padding: ${width * 0.08}px;
+  padding: ${width * 0.08}px;
 `;
 
 const CommunityMainProfile = styled.View`
-    flex-direction: row;
-    align-items: center;
-    border-bottom-width: 1px;
-    border-bottom-color: ${colors.gray100};
-    padding-bottom: 10px;
+  flex-direction: row;
+  align-items: center;
+  border-bottom-width: 1px;
+  border-bottom-color: ${colors.gray100};
+  padding-bottom: 10px;
 `;
 
 const MainProfileIMG = styled.View`
