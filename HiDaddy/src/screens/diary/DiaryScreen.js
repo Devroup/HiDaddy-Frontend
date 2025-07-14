@@ -1,16 +1,43 @@
 import React from 'react';
 import styled from 'styled-components/native';
 import colors from '../../constants/colors';
-import Background from '../../components/Background';
 
-const DiaryScreen = () => (
+import Write from '../../assets/imgs/icons/write.svg';
+
+import Background from '../../components/Background';
+import { HmmBText, HmmText } from '../../components/CustomText';
+import { Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
+const { width } = Dimensions.get('window');
+
+const DiaryScreen = () => {
+  const navigation = useNavigation();
+  return(
   <Wrapper>
     <Background/>
     <Content>
-      <Title>Diary Screen</Title>
+      <DiaryMain>
+        <DiaryMainTitle>
+          <MainTitle>사랑이 가득차는 순간들</MainTitle>
+          <TouchableWrite
+            onPress={() =>
+              navigation.navigate('DiaryStackNavigator',{
+                screen: 'DiaryWriteScreen'
+              })
+            }
+          >
+            <Write width={35} height={35}/>
+          </TouchableWrite>
+        </DiaryMainTitle>
+        <DiarySubTitle>
+          <SubTitle>지금, 그 감정을 남겨보세요.</SubTitle>
+        </DiarySubTitle>
+      </DiaryMain>
     </Content>
   </Wrapper>
-);
+  );
+};
 
 export default DiaryScreen;
 
@@ -19,13 +46,30 @@ const Wrapper = styled.View`
 `
 
 const Content = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
+  margin-top: 30px;
+  padding: ${width * 0.1}px;
 `;
 
-const Title = styled.Text`
-  font-size: 24px;
-  font-weight: bold;
+const DiaryMain = styled.View`
+`;
+
+const DiaryMainTitle = styled.View`
+  flex-direction: row;
+  gap: ${width*0.15}px;
+`;
+
+const MainTitle = styled(HmmBText)`
+  font-size: ${width*0.06}px;
   color: ${colors.black};
+`;
+
+const TouchableWrite = styled.TouchableOpacity`
+`;
+
+const DiarySubTitle = styled.View`
+  margin-top: ${width*0.035}px;
+`;
+
+const SubTitle = styled(HmmText)`
+  font-size: ${width*0.05}px;
 `;
