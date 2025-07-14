@@ -13,7 +13,6 @@ const { width } = Dimensions.get('window');
 const DiaryWriteScreen = () => {
   return(
   <Wrapper>
-    <Background/>
     <Content>
         <DiaryMain>
             <DiaryTitle>
@@ -38,6 +37,7 @@ export default DiaryWriteScreen;
 
 const Wrapper = styled.View`
   flex: 1;
+  background-color: ${colors.white};
 `;
 
 const Content = styled.View`
