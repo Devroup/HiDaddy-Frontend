@@ -13,6 +13,7 @@ const CustomButton = ({
   title = '완료',
   backgroundColor = colors.black,
   textColor = colors.white,
+  style,
 }) => {
   const navigation = useNavigation();
 
@@ -21,7 +22,7 @@ const CustomButton = ({
   };
   return (
     <Wrapper>
-      <Button onPress={handlePress} backgroundColor={backgroundColor}>
+      <Button onPress={handlePress} backgroundColor={backgroundColor} style={style}>
         <Text textColor={textColor}>{title}</Text>
       </Button>
     </Wrapper>
@@ -42,7 +43,7 @@ const Button = styled.TouchableOpacity`
   padding-horizontal: 20px;
   border-radius: 10px;
   margin-top: ${height * 0.03}px;
-  margin-right: ${width * 0.06}px;
+  margin-right: ${width * 0.07}px;
 `;
 
 const Text = styled(HmmBText)`

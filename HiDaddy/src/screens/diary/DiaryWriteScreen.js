@@ -1,59 +1,113 @@
-import React from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import styled from 'styled-components/native';
 import colors from '../../constants/colors';
 
 import Send from '../../assets/imgs/icons/send.svg';
 import Gallery from '../../assets/imgs/icons/addimg.svg';
 import { HmmBText, HmmText } from '../../components/CustomText';
-import { Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Dimensions, View } from 'react-native';
+import CustomButton from '../../components/CustomButton';
 
 const { width } = Dimensions.get('window');
 
 const DiaryWriteScreen = () => {
-  return(
-  <Wrapper>
-    <Content>
-        <DiaryTopSection>
-            <DiaryMain>
-                <DiaryTitle>
-                    <MainTitle>2025년 5월 28일</MainTitle>
-                </DiaryTitle>
-            </DiaryMain>
+    const navigation = useNavigation();
+    const [isEditing, setIsEditing] = useState(true);
+    const [diaryText, setDiaryText] = useState('');
+    const [messageText, setMessageText] = useState('');
 
-            <DiaryMainContent>
-                <DiaryInput
-                    placeholder={"어느덧 15주차네요.\n아내를 향한 진심을 전달해보는 건 어떨까요?"}
-                    placeholderTextColor="#999"
-                    multiline={true}
-                    textAlignVertical="top"
-                />
-            </DiaryMainContent>
-        </DiaryTopSection>
-        <DiarySubContent>
-            <DiaryMessage>
-                <MessageTitle>
-                    아내에게 하고싶은 말 한마디
-                </MessageTitle>
-                <MessageContent>
-                    <MessageInput
-                        placeholder={"직접 말하지 못한걸 글로 표현해보는건 어떨까요?"}
+    useLayoutEffect(()=>{
+        navigation.setOptions({
+            headerRight:() => {
+                if (isEditing) {
+                    return (
+                        <CustomButton
+                            title="완료"
+                            onPress={() => {
+                                console.log('일기 저장됨:', diaryText, messageText);
+                                setIsEditing(false);
+                            }}
+                        />
+                    );
+                } else {
+                    return (
+                        <View style={{flexDirection: 'row'}}>
+                            <CustomButton
+                                title="삭제"
+                                variant="delete"
+                                backgroundColor={colors.red}
+                                colors="red"
+                                onPress={() => {
+                                    console.log('삭제됨');
+                                    navigation.goBack();
+                                }}
+                                style={{marginRight: 12}}
+                            />
+                            <CustomButton
+                                title="수정"
+                                variant="edit"
+                                onPress={() => {
+                                    setIsEditing(true);
+                                }}
+                            />
+                        </View>
+                    );
+                }
+            },
+        });
+    }, [navigation, isEditing, diaryText, messageText]);
+
+    return(
+    <Wrapper>
+        <Content>
+            <DiaryTopSection>
+                <DiaryMain>
+                    <DiaryTitle>
+                        <MainTitle>2025년 5월 28일</MainTitle>
+                    </DiaryTitle>
+                </DiaryMain>
+
+                <DiaryMainContent>
+                    <DiaryInput
+                        value={diaryText}
+                        onChangeText={setDiaryText}
+                        editable={isEditing}
+                        placeholder={"어느덧 15주차네요.\n아내를 향한 진심을 전달해보는 건 어떨까요?"}
                         placeholderTextColor="#999"
                         multiline={true}
                         textAlignVertical="top"
                     />
-                    <Send width={25} height={25}/>
-                </MessageContent>
-                
-            </DiaryMessage>
-            <DiaryRecordImg>
-                <RecordContent>
-                    <ImgText>초음파 사진 한 장을 첨부하세요</ImgText>
-                    <Gallery width={25} height={25}/>
-                </RecordContent>
-            </DiaryRecordImg>
-        </DiarySubContent>
-    </Content>
-  </Wrapper>
+                </DiaryMainContent>
+            </DiaryTopSection>
+            <DiarySubContent>
+                <DiaryMessage>
+                    <MessageTitle>
+                        아내에게 하고싶은 말 한마디
+                    </MessageTitle>
+                    <MessageContent>
+                        <MessageInput
+                            value={messageText}
+                            onChangeText={setMessageText}
+                            editable={isEditing}
+                            placeholder={"직접 말하지 못한걸 글로 표현해보는건 어떨까요?"}
+                            placeholderTextColor="#999"
+                            multiline={true}
+                            textAlignVertical="top"
+                        />
+                        <Send width={25} height={25}/>
+                    </MessageContent>
+                    
+                </DiaryMessage>
+                <DiaryRecordImg>
+                    <RecordContent>
+                        <ImgText>초음파 사진 한 장을 첨부하세요</ImgText>
+                        <Gallery width={25} height={25}/>
+                    </RecordContent>
+                </DiaryRecordImg>
+            </DiarySubContent>
+        </Content>
+    </Wrapper>
   );
 };
 
