@@ -32,7 +32,7 @@ const DiaryStackNavigator = () => (
     <Stack.Screen
         name="DiaryWriteScreen"
         component={DiaryWriteScreen}
-        options={{title: false, headerRight: () => <CustomButton/>}}
+        options={{title: false}}
     />
     </Stack.Navigator>
 );
