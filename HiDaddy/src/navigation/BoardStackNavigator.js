@@ -7,6 +7,7 @@ import BoardWriteScreen from "../screens/board/BoardWriteScreen";
 import BoardDetailScreen from "../screens/board/BoardDetailScreen";
 
 import colors from "../constants/colors";
+import CustomButton from "../components/CustomButton";
 
 const { width, height } = Dimensions.get('window');
 
@@ -32,7 +33,7 @@ const BoardStackNavigator = () => (
     <Stack.Screen
       name="BoardWriteScreen"
       component={BoardWriteScreen}
-      options={{title: false }}
+      options={{title: false, headerRight: () => <CustomButton/> }}
     />
     <Stack.Screen
       name="BoardDetailScreen"

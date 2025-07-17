@@ -15,10 +15,9 @@ const CustomButton = ({
   textColor = colors.white,
   style,
 }) => {
-  const navigation = useNavigation();
 
   const handlePress = () => {
-    onPress ? onPress() : navigation.goBack();
+    onPress && onPress();
   };
   return (
     <Wrapper>
