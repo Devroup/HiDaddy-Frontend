@@ -94,7 +94,7 @@ const Wrapper = styled.View`
 `
 
 const Content = styled.View`
-  margin-top: 20px;
+  margin-top: 30px;
   padding: ${width * 0.1}px;
 `;
 

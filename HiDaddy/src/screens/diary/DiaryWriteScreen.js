@@ -95,14 +95,14 @@ const DiaryWriteScreen = () => {
                             multiline={true}
                             textAlignVertical="top"
                         />
-                        <Send width={25} height={25}/>
+                        <Send width={30} height={30}/>
                     </MessageContent>
                     
                 </DiaryMessage>
                 <DiaryRecordImg>
                     <RecordContent>
                         <ImgText>초음파 사진 한 장을 첨부하세요</ImgText>
-                        <Gallery width={25} height={25}/>
+                        <Gallery width={30} height={30}/>
                     </RecordContent>
                 </DiaryRecordImg>
             </DiarySubContent>
@@ -167,7 +167,7 @@ const MessageTitle = styled(HmmBText)`
 const MessageContent = styled.View`
     flex-direction: row;
     align-items: center;
-    gap: ${width*0.01}px;
+    gap: ${width*0.02}px;
 `;
 
 const MessageInput = styled.TextInput`
@@ -190,6 +190,6 @@ const ImgText = styled(HmmText)`
 
 const RecordContent = styled.View`
     flex-direction: row;
-    align-items: center;
+    align-items: flex-end;
     gap: ${width*0.3}px;
 `;
