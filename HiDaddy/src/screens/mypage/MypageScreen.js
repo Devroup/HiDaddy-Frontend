@@ -17,6 +17,7 @@ const { width, height } = Dimensions.get('window');
 
 const MypageScreen = ({ navigation: { navigate } }) => {
   const [withdrawalVisible, setWithdrawalVisible] = useState(false);
+  const [logoutVisible, setLogoutVisible] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [nicknameVisible, setNicknameVisible] = useState(false);
   const [nickname, setNickname] = useState('');
@@ -81,7 +82,7 @@ const MypageScreen = ({ navigation: { navigate } }) => {
             <MenuText>회원탈퇴</MenuText>
           </MenuItem>
 
-          <MenuItem>
+          <MenuItem onPress={() => setLogoutVisible(true)}>
             <MenuText>로그아웃</MenuText>
           </MenuItem>
         </MenuContainer>
@@ -102,6 +103,16 @@ const MypageScreen = ({ navigation: { navigate } }) => {
         </MenuContainer>
       </Content>
 
+      <NicknameModal
+        visible={nicknameVisible}
+        currentNickname={nickname}
+        onSave={newName => {
+          setNickname(newName);
+          setNicknameVisible(false);
+          // 닉네임 변경 API 호출
+        }}
+        onCancel={() => setNicknameVisible(false)}
+      />
       <CustomModal
         visible={withdrawalVisible}
         title="정말 탈퇴하시겠습니까?"
@@ -123,15 +134,22 @@ const MypageScreen = ({ navigation: { navigate } }) => {
         }}
         onCancel={() => setWithdrawalVisible(false)}
       />
-      <NicknameModal
-        visible={nicknameVisible}
-        currentNickname={nickname}
-        onSave={newName => {
-          setNickname(newName);
-          setNicknameVisible(false);
-          // 닉네임 변경 API 호출
+      <CustomModal
+        visible={logoutVisible}
+        title="정말 로그아웃 하시겠습니까?"
+        content="로그아웃 시 메인 화면으로 이동됩니다."
+        confirmText="로그아웃"
+        cancelText="취소"
+        confirmButtonColor={colors.black}
+        cancelButtonColor={colors.white}
+        cancelTextColor={colors.black}
+        onConfirm={() => {
+          // 로그아웃 로직 추가
+          console.log('로그아웃 진행');
+          setLogoutVisible(false);
+          // 로그인 화면으로 이동하도록
         }}
-        onCancel={() => setNicknameVisible(false)}
+        onCancel={() => setLogoutVisible(false)}
       />
     </Wrapper>
   );
