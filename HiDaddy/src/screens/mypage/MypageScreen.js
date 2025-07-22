@@ -7,6 +7,7 @@ import Background from '../../components/Background';
 import colors from '../../constants/colors';
 import { HmmText, HmmBText } from '../../components/CustomText';
 import CustomModal from '../../components/CustomModal';
+import NicknameModal from './NicknameModal';
 
 import UserIcon from '../../assets/imgs/icons/myprofile.svg';
 import EditIcon from '../../assets/imgs/icons/edit.svg';
@@ -17,6 +18,8 @@ const { width, height } = Dimensions.get('window');
 const MypageScreen = ({ navigation: { navigate } }) => {
   const [withdrawalVisible, setWithdrawalVisible] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
+  const [nicknameVisible, setNicknameVisible] = useState(false);
+  const [nickname, setNickname] = useState('');
 
   const handleChangeProfileImage = () => {
     launchImageLibrary({ mediaType: 'photo' }, response => {
@@ -52,7 +55,12 @@ const MypageScreen = ({ navigation: { navigate } }) => {
           <ProfileInfoContainer>
             <NameRow>
               <UserName>닉네임</UserName>
-              <EditIcon width={20} height={20} style={{ marginLeft: 4 }} />
+              <EditIcon
+                width={20}
+                height={20}
+                style={{ marginLeft: 4 }}
+                onPress={() => setNicknameVisible(true)}
+              />
             </NameRow>
             <UserEmail>mcy325@naver.com</UserEmail>
             <HeartRow>
@@ -114,6 +122,16 @@ const MypageScreen = ({ navigation: { navigate } }) => {
           setWithdrawalVisible(false);
         }}
         onCancel={() => setWithdrawalVisible(false)}
+      />
+      <NicknameModal
+        visible={nicknameVisible}
+        currentNickname={nickname}
+        onSave={newName => {
+          setNickname(newName);
+          setNicknameVisible(false);
+          // 닉네임 변경 API 호출
+        }}
+        onCancel={() => setNicknameVisible(false)}
       />
     </Wrapper>
   );
