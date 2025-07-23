@@ -46,7 +46,7 @@ const BoardDetailScreen = () => {
                 </ContentText>
             </CommunityMainContent>
             <CommunityMainImage>
-        
+            
             </CommunityMainImage>
         
             <CommunityMainResponse>
@@ -63,6 +63,21 @@ const BoardDetailScreen = () => {
                     </Commentcount>
                 </CommunityMainComment>
             </CommunityMainResponse>
+            <CommentList>
+              <UserProfile>
+                <Profile width={20} height={20}/>
+                <Id>
+                  <IdText>닉네임</IdText>
+                </Id>
+                <Time>
+                  <TimeText>2025.05.25</TimeText>
+                </Time>
+              </UserProfile>
+              <Comments>
+                <CommentsText>할말이 없다.</CommentsText>
+                <EmptyHeartlike width={20} height={20}/>
+              </Comments>
+            </CommentList>
             </Content>
         </Wrapper>
     ); 
@@ -76,6 +91,7 @@ const Wrapper = styled.View`
 `;
 
 const Content = styled.View`
+  flex: 1;
   padding: ${width * 0.08}px;
 `;
 
@@ -142,7 +158,7 @@ const CommunityMainResponse = styled.View`
   flex-direction: row;
   border-bottom-width: 1px;
   border-bottom-color: ${colors.gray100};
-  padding-bottom: 10px;
+  padding-bottom: ${width*0.03}px;
 `;
 
 const CommunityMainLike = styled.View`
@@ -168,4 +184,27 @@ const Commentcount = styled.View`
 `;
 
 const CommentText = styled(HmmBText)`
+`;
+
+const CommentList = styled.View`
+    margin-top: ${width*0.04}px;
+    border-bottom-width: 1px;
+    border-bottom-color: ${colors.gray100};
+    padding-bottom: ${width*0.03}px;
+`;
+
+const UserProfile = styled.View`
+    flex-direction: row;
+    gap: ${width*0.02}px;
+    align-items: center;
+`;
+
+const Comments = styled.View`
+    flex-direction: row;
+    gap: ${width*0.53}px;
+    margin-top: ${width*0.015}px;
+    margin-left: ${width*0.07}px;
+`;
+
+const CommentsText = styled(HmmText)`
 `;
