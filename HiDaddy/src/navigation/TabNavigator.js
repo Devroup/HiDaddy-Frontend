@@ -4,18 +4,18 @@ import { Dimensions } from 'react-native';
 
 import HomeScreen from '../screens/home/HomeScreen';
 import DiaryScreen from '../screens/diary/DiaryScreen';
-import BoardScreen from '../screens/board/BoardScreen';
+import CommunityScreen from '../screens/community/CommunityScreen';
 import HeartScreen from '../screens/heart/HeartScreen';
 import MypageScreen from '../screens/mypage/MypageScreen';
 
 import HomeGray from '../assets/imgs/icons/home_gray.svg';
 import DiaryGray from '../assets/imgs/icons/diary_gray.svg';
-import BoardGray from '../assets/imgs/icons/board_gray.svg';
+import CommunityGray from '../assets/imgs/icons/community_gray.svg';
 import HeartGray from '../assets/imgs/icons/heart_gray.svg';
 import MypageGray from '../assets/imgs/icons/mypage_gray.svg';
 import HomeBlack from '../assets/imgs/icons/home_black.svg';
 import DiaryBlack from '../assets/imgs/icons/diary_black.svg';
-import BoardBlack from '../assets/imgs/icons/board_black.svg';
+import CommunityBlack from '../assets/imgs/icons/community_black.svg';
 import HeartBlack from '../assets/imgs/icons/heart_black.svg';
 import MypageBlack from '../assets/imgs/icons/mypage_black.svg';
 
@@ -41,8 +41,8 @@ const TabNavigator = () => {
             case 'Diary':
               Icon = focused ? DiaryBlack : DiaryGray;
               break;
-            case 'Board':
-              Icon = focused ? BoardBlack : BoardGray;
+            case 'Community':
+              Icon = focused ? CommunityBlack : CommunityGray;
               break;
             case 'Heart':
               Icon = focused ? HeartBlack : HeartGray;
@@ -57,7 +57,7 @@ const TabNavigator = () => {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Diary" component={DiaryScreen} />
-      <Tab.Screen name="Board" component={BoardScreen} />
+      <Tab.Screen name="Community" component={CommunityScreen} />
       <Tab.Screen name="Heart" component={HeartScreen} />
       <Tab.Screen name="Mypage" component={MypageScreen} />
     </Tab.Navigator>
