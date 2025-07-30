@@ -1,73 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { Dimensions, TouchableOpacity, Image } from 'react-native';
 import styled from 'styled-components/native';
-import { launchImageLibrary } from 'react-native-image-picker';
 
 import Background from '../../components/Background';
 import colors from '../../constants/colors';
 import { HmmText, HmmBText } from '../../components/CustomText';
 import CustomModal from '../../components/CustomModal';
 
-import UserIcon from '../../assets/imgs/icons/myprofile.svg';
-import EditIcon from '../../assets/imgs/icons/edit.svg';
-import CoinIcon from '../../assets/imgs/icons/coin.svg';
-
 const { width, height } = Dimensions.get('window');
 
 const MypageScreen = ({ navigation: { navigate } }) => {
   const [withdrawalVisible, setWithdrawalVisible] = useState(false);
   const [logoutVisible, setLogoutVisible] = useState(false);
-  const [profileImage, setProfileImage] = useState(null);
-
-  const handleChangeProfileImage = () => {
-    launchImageLibrary({ mediaType: 'photo' }, response => {
-      if (!response.didCancel && !response.errorCode) {
-        const uri = response.assets[0].uri;
-        setProfileImage(uri);
-        //프로필 이미지 업로드 api 연결
-      }
-    });
-  };
 
   return (
     <Wrapper>
       <Background />
       <Content>
-        <ProfileContainer>
-          <ProfileImageContainer>
-            <TouchableOpacity onPress={handleChangeProfileImage}>
-              {profileImage ? (
-                <Image
-                  source={{ uri: profileImage }}
-                  style={{
-                    width: width * 0.25,
-                    height: width * 0.25,
-                    borderRadius: 50,
-                  }}
-                />
-              ) : (
-                <UserIcon width={width * 0.12} height={width * 0.12} />
-              )}
-            </TouchableOpacity>
-          </ProfileImageContainer>
-          <ProfileInfoContainer>
-            <NameRow>
-              <UserName>닉네임</UserName>
-              <EditIcon
-                width={20}
-                height={20}
-                style={{ marginLeft: 4 }}
-                onPress={() => setNicknameVisible(true)}
-              />
-            </NameRow>
-            <UserEmail>mcy325@naver.com</UserEmail>
-            <HeartRow>
-              <CoinIcon width={20} height={20} style={{ marginRight: 4 }} />
-              <UserHeart>1000 하트</UserHeart>
-            </HeartRow>
-          </ProfileInfoContainer>
-        </ProfileContainer>
+        <HeaderContainer>
+          <HeaderTitle>하트 교환소</HeaderTitle>
+        </HeaderContainer>
         <MenuContainer>
+          <MenuItem
+            onPress={() =>
+              navigate('MypageStackNavigator', { screen: 'MyInfoScreen' })
+            }
+          >
+            <MenuText>내 정보</MenuText>
+          </MenuItem>
           <MenuItem
             onPress={() =>
               navigate('MypageStackNavigator', { screen: 'ProfileScreen' })
@@ -147,57 +107,21 @@ const Wrapper = styled.View`
   flex: 1;
 `;
 
-const Content = styled.View`
-  flex: 1;
-  padding: ${height * 0.06}px ${width * 0.08}px;
-`;
-
-const ProfileContainer = styled.View`
-  flex-direction: row;
+const HeaderContainer = styled.View`
+  padding-top: ${width * 0.02}px;
+  padding-bottom: ${width * 0.06}px;
+  justify-content: flex-end;
   align-items: center;
-  padding: ${height * 0.02}px 0;
 `;
 
-const ProfileImageContainer = styled.View`
-  width: ${width * 0.25}px;
-  height: ${width * 0.25}px;
-  border-radius: 50px;
-  justify-content: center;
-  align-items: center;
-  background-color: ${colors.gray100};
-  margin-right: ${width * 0.05}px;
-`;
-
-const ProfileInfoContainer = styled.View`
-  flex-direction: column;
-`;
-
-const NameRow = styled.View`
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: ${height * 0.01}px;
-`;
-
-const UserName = styled(HmmBText)`
+const HeaderTitle = styled(HmmBText)`
   font-size: ${width * 0.05}px;
   color: ${colors.black};
 `;
 
-const UserEmail = styled(HmmBText)`
-  font-size: ${width * 0.04}px;
-  color: ${colors.black};
-  margin-bottom: ${height * 0.01}px;
-`;
-
-const HeartRow = styled.View`
-  flex-direction: row;
-  align-items: center;
-  margin-top: 6px;
-`;
-
-const UserHeart = styled(HmmBText)`
-  font-size: ${width * 0.04}px;
-  color: ${colors.black};
+const Content = styled.View`
+  flex: 1;
+  padding: ${height * 0.06}px ${width * 0.08}px;
 `;
 
 const MenuContainer = styled.View``;
