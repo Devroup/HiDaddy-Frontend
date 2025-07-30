@@ -151,6 +151,17 @@ export const put = async (endpoint, data = {}, options = {}) => {
   }
 };
 
+// PATCH 함수
+export const patch = async (endpoint, data = {}, options = {}) => {
+  try {
+    const response = await api.patch(endpoint, data, options);
+    return response.data;
+  } catch (error) {
+    // console.error('PATCH 요청 에러:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
 // DELETE 함수
 export const del = async (endpoint, options = {}) => {
   try {
