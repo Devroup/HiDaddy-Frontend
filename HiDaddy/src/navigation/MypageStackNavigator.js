@@ -3,6 +3,7 @@ import { Dimensions } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import MypageScreen from '../screens/mypage/MypageScreen';
+import MyInfoScreen from '../screens/mypage/MyInfoScreen';
 import ProfileScreen from '../screens/mypage/ProfileScreen';
 import ProfileAddScreen from '../screens/mypage/ProfileAddScreen';
 
@@ -30,10 +31,11 @@ const MypageStackNavigator = () => (
       headerLeft: () => <BackButton />,
     }}
   >
+    <Stack.Screen name="MypageScreen" component={MypageScreen} />
     <Stack.Screen
-      name="MypageScreen"
-      component={MypageScreen}
-      options={{ headerLeft: () => null }}
+      name="MyInfoScreen"
+      component={MyInfoScreen}
+      options={{ title: '내 정보' }}
     />
     <Stack.Screen
       name="ProfileScreen"
