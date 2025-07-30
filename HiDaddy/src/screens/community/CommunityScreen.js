@@ -15,30 +15,30 @@ import { HmmText, HmmBText } from '../../components/CustomText';
 
 const { width } = Dimensions.get('window');
 
-const BoardScreen = () => {
+const CommunityScreen = () => {
   const navigation = useNavigation();
 
-  return(
-  <Wrapper>
-    <Background />
-    <Content>
-      <CommunityMain>
-        <CommunityMainTitle>
-          <MainTitle>아빠들의 이야기</MainTitle>
-          <Touchable
-            onPress={() =>
-              navigation.navigate('BoardStackNavigator', {
-                screen: 'BoardWriteScreen'
-              })
-            }
+  return (
+    <Wrapper>
+      <Background />
+      <Content>
+        <CommunityMain>
+          <CommunityMainTitle>
+            <MainTitle>아빠들의 이야기</MainTitle>
+            <Touchable
+              onPress={() =>
+                navigation.navigate('CommunityStackNavigator', {
+                  screen: 'CommunityWriteScreen',
+                })
+              }
             >
-            <Write width={35} height={35}/>
-          </Touchable>
-        </CommunityMainTitle>
-      </CommunityMain>
-      <CommunityMainProfile>
+              <Write width={35} height={35} />
+            </Touchable>
+          </CommunityMainTitle>
+        </CommunityMain>
+        <CommunityMainProfile>
           <MainProfileIMG>
-            <Profile width={30} height={30}/>
+            <Profile width={30} height={30} />
           </MainProfileIMG>
           <MainProfileText>
             <ProfileId>
@@ -54,44 +54,45 @@ const BoardScreen = () => {
 
         <CommunityMainContent>
           <Touchable
-            onPress={() => 
-              navigation.navigate('BoardStackNavigator', {
-                screen: 'BoardDetailScreen'
+            onPress={() =>
+              navigation.navigate('CommunityStackNavigator', {
+                screen: 'CommunityDetailScreen',
               })
             }
           >
-          <ContentText>
-            나는 할 말이 없다. 왜냐하면 할 말이 없기 때문이다. 그러나 어쩔 수 없이 할 말을 적어야한다. 임시로 일단 적어 놓아야 디자인을 하던가 말던가 하기 때문이다. 근데 진짜 할 말이 없다. 아 할 말 있다. 집이 최고다.
-          </ContentText>
+            <ContentText>
+              나는 할 말이 없다. 왜냐하면 할 말이 없기 때문이다. 그러나 어쩔 수
+              없이 할 말을 적어야한다. 임시로 일단 적어 놓아야 디자인을 하던가
+              말던가 하기 때문이다. 근데 진짜 할 말이 없다. 아 할 말 있다. 집이
+              최고다.
+            </ContentText>
           </Touchable>
         </CommunityMainContent>
-        <CommunityMainImage>
-
-        </CommunityMainImage>
+        <CommunityMainImage></CommunityMainImage>
 
         <CommunityMainResponse>
           <CommunityMainLike>
-            <EmptyHeartlike width={24} height={24}/>
+            <EmptyHeartlike width={24} height={24} />
             <Heartlikecount>
               <CountText>100</CountText>
             </Heartlikecount>
           </CommunityMainLike>
           <CommunityMainComment>
-            <Comment width={24} height={24}/>
+            <Comment width={24} height={24} />
             <Commentcount>
               <CommentText>12</CommentText>
             </Commentcount>
           </CommunityMainComment>
         </CommunityMainResponse>
-    </Content>
-  </Wrapper>
-);
+      </Content>
+    </Wrapper>
+  );
 };
-export default BoardScreen;
+export default CommunityScreen;
 
 const Wrapper = styled.View`
   flex: 1;
-`
+`;
 
 const Content = styled.View`
   margin-top: 30px;
@@ -106,7 +107,7 @@ const CommunityMain = styled.View`
 
 const CommunityMainTitle = styled.View`
   flex-direction: row;
-  gap: ${width*0.34}px;  
+  gap: ${width * 0.34}px;
 `;
 
 const MainTitle = styled(HmmBText)`
@@ -115,9 +116,9 @@ const MainTitle = styled(HmmBText)`
 `;
 
 const Touchable = styled.TouchableOpacity`
-  flex-direction:row;
+  flex-direction: row;
   align-items: center;
-  gap: ${width*0.38}px;
+  gap: ${width * 0.38}px;
 `;
 
 const CommunityMainProfile = styled.View`
@@ -127,7 +128,7 @@ const CommunityMainProfile = styled.View`
 `;
 
 const MainProfileIMG = styled.View`
-  border-radius: 100px;  
+  border-radius: 100px;
   background-color: ${colors.gray100};
   border: 2px solid ${colors.black};
 `;
@@ -140,11 +141,10 @@ const ProfileId = styled.View`
   flex-direction: column;
 `;
 
-const Id = styled.View`
-`;
+const Id = styled.View``;
 
 const IdText = styled(HmmText)`
-  font-size: ${width*0.038};
+  font-size: ${width * 0.038};
   color: ${colors.black};
 `;
 
@@ -153,7 +153,7 @@ const Time = styled.View`
 `;
 
 const TimeText = styled(HmmText)`
-  font-size: ${width*0.034};
+  font-size: ${width * 0.034};
   color: ${colors.gray100};
 `;
 
@@ -161,11 +161,9 @@ const CommunityMainContent = styled.View`
   margin-top: 17px;
 `;
 
-const ContentText = styled(HmmText)`
-`;
+const ContentText = styled(HmmText)``;
 
-const CommunityMainImage = styled.View`
-`;
+const CommunityMainImage = styled.View``;
 
 const CommunityMainResponse = styled.View`
   margin-top: 17px;
@@ -177,7 +175,7 @@ const CommunityMainResponse = styled.View`
 
 const CommunityMainLike = styled.View`
   flex-direction: row;
-  align-item: center;
+  align-items: center;
 `;
 
 const CommunityMainComment = styled.View`
@@ -197,5 +195,4 @@ const Commentcount = styled.View`
   margin-left: 4px;
 `;
 
-const CommentText = styled(HmmBText)`
-`;
+const CommentText = styled(HmmBText)``;
