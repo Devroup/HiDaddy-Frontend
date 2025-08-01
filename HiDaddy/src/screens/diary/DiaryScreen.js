@@ -3,7 +3,7 @@ import styled from 'styled-components/native';
 import colors from '../../constants/colors';
 
 import Write from '../../assets/imgs/icons/write.svg';
-import CustomCalendar from '../../components/CustomCalendar.js';
+import CustomCalendar from './CustomCalendar.js';
 
 import Background from '../../components/Background';
 import { HmmBText, HmmText } from '../../components/CustomText';
