@@ -1,13 +1,13 @@
 import React from 'react';
-import colors from '../constants/colors';
+import colors from '../../constants/colors';
 import styled from 'styled-components/native';
 
-import LeftArrow from '../assets/imgs/icons/left_arrow.svg';
-import RightArrow from '../assets/imgs/icons/right_arrow.svg';
+import LeftArrow from '../../assets/imgs/icons/left_arrow.svg';
+import RightArrow from '../../assets/imgs/icons/right_arrow.svg';
 
 import { Dimensions } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
-import { HmmText, HmmBText } from './CustomText';
+import { HmmText, HmmBText } from '../../components/CustomText';
 
 const { width } = Dimensions.get('window');
 
