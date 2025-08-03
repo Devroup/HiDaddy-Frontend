@@ -25,8 +25,9 @@ const MyInfoScreen = ({ navigation }) => {
   useEffect(() => {
     // 예시 데이터
     setUserInfo({
-      nickname: '채문영',
+      userName: '채문영',
       email: 'mcy325@naver.com',
+      phone: '010-0000-0000',
       wifePhone: '010-0000-0000',
       hearts: 1000,
     });
@@ -60,7 +61,7 @@ const MyInfoScreen = ({ navigation }) => {
         <InfoItem>
           <Label>닉네임</Label>
           <Row>
-            <Value>{userInfo.nickname}</Value>
+            <Value>{userInfo.userName}</Value>
             <TouchableOpacity>
               <EditIcon width={18} height={18} />
             </TouchableOpacity>
@@ -70,6 +71,16 @@ const MyInfoScreen = ({ navigation }) => {
         <InfoItem>
           <Label>이메일</Label>
           <Value>{userInfo.email}</Value>
+        </InfoItem>
+
+        <InfoItem>
+          <Label>내 전화번호</Label>
+          <Row>
+            <Value>{userInfo.phone}</Value>
+            <TouchableOpacity>
+              <EditIcon width={18} height={18} />
+            </TouchableOpacity>
+          </Row>
         </InfoItem>
 
         <InfoItem>
