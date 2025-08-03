@@ -1,17 +1,79 @@
 import React, { useState, useEffect } from 'react';
-import { Dimensions, TouchableOpacity, Image } from 'react-native';
+import { Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import styled from 'styled-components/native';
+import * as Keychain from 'react-native-keychain';
 
 import Background from '../../components/Background';
 import colors from '../../constants/colors';
 import { HmmText, HmmBText } from '../../components/CustomText';
 import CustomModal from '../../components/CustomModal';
+import config from '../../constants/config';
+import { post, del } from '../../services/api';
 
 const { width, height } = Dimensions.get('window');
 
 const MypageScreen = ({ navigation: { navigate } }) => {
+  const navigation = useNavigation();
+
   const [withdrawalVisible, setWithdrawalVisible] = useState(false);
   const [logoutVisible, setLogoutVisible] = useState(false);
+
+  const handleWithdraw = async () => {
+    try {
+      const res = await del(config.AUTH.DELETE);
+
+      console.log('탈퇴 응답:', res);
+
+      if (res?.isSuccess) {
+        await Keychain.resetGenericPassword();
+        Alert.alert('탈퇴 완료', '계정이 삭제되었습니다.');
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'IntroStackNavigator',
+              params: { screen: 'LoginScreen' },
+            },
+          ],
+        });
+      } else {
+        console.log('탈퇴 응답:', res);
+        Alert.alert('탈퇴 실패', res?.message || '오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('탈퇴 에러:', error);
+      Alert.alert('에러', '네트워크 오류 또는 서버 문제입니다.');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const res = await del(config.AUTH.LOGOUT);
+
+      console.log('로그아웃 응답:', res);
+
+      if (res?.isSuccess) {
+        await Keychain.resetGenericPassword();
+        Alert.alert('로그아웃 완료', '성공적으로 로그아웃되었습니다.');
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'IntroStackNavigator',
+              params: { screen: 'LoginScreen' },
+            },
+          ],
+        });
+      } else {
+        console.log('로그아웃 응답:', res);
+        Alert.alert('로그아웃 실패', res?.message || '오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('로그아웃 에러:', error);
+      Alert.alert('에러', '네트워크 오류 또는 서버 문제입니다.');
+    }
+  };
 
   return (
     <Wrapper>
@@ -74,8 +136,8 @@ const MypageScreen = ({ navigation: { navigate } }) => {
         confirmButtonColor={colors.red}
         cancelButtonColor={colors.white}
         cancelTextColor={colors.black}
-        onConfirm={() => {
-          // 탈퇴 로직 추가
+        onConfirm={async () => {
+          await handleWithdraw();
           console.log('탈퇴 진행');
           setWithdrawalVisible(false);
         }}
@@ -90,11 +152,10 @@ const MypageScreen = ({ navigation: { navigate } }) => {
         confirmButtonColor={colors.black}
         cancelButtonColor={colors.white}
         cancelTextColor={colors.black}
-        onConfirm={() => {
-          // 로그아웃 로직 추가
+        onConfirm={async () => {
+          await handleLogout();
           console.log('로그아웃 진행');
           setLogoutVisible(false);
-          // 로그인 화면으로 이동하도록
         }}
         onCancel={() => setLogoutVisible(false)}
       />
