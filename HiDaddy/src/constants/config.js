@@ -1,4 +1,6 @@
-const BASE_URL = 'http://3.36.201.162:8080'; //기본 API URL
+import { DEVROUP_URL } from '@env';
+
+const BASE_URL = DEVROUP_URL; //기본 API URL
 
 const config = {
   API_URL: BASE_URL,
