@@ -40,9 +40,7 @@ const ChatBotScreen = () => {
   };
 
   useEffect(() => {
-    const socket = new WebSocket(
-      'https://web-production-c949f.up.railway.app/ws/chat',
-    );
+    const socket = new WebSocket('wss://devroup.com/chatbot/ws/chat');
 
     socket.onopen = () => {
       console.log('WebSocket 연결됨');
@@ -113,62 +111,63 @@ const ChatBotScreen = () => {
 
   return (
     <Wrapper>
-      <Background />
-      <ScrollView
-        ref={scrollViewRef}
-        style={{ flex: 1 }}
-        contentContainerStyle={{ flexGrow: 1, padding: width * 0.06 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <BotRow>
-          <ProfileCircle>
-            <Bot width={24} height={24} />
-          </ProfileCircle>
+      <Background style={{ position: 'absolute' }} />
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+        <ScrollView
+          ref={scrollViewRef}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1, padding: width * 0.06 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <BotRow>
+            <ProfileCircle>
+              <Bot width={24} height={24} />
+            </ProfileCircle>
 
-          <BotTextGroup>
-            <Label>
-              <HmmBText
-                style={{ color: colors.black, fontSize: width * 0.038 }}
-              >
-                아이키퍼
-              </HmmBText>
-            </Label>
+            <BotTextGroup>
+              <Label>
+                <HmmBText
+                  style={{ color: colors.black, fontSize: width * 0.038 }}
+                >
+                  아이키퍼
+                </HmmBText>
+              </Label>
 
-            <BotMessageBox>
-              <BotMessage>
-                안녕하세요, 아이키퍼입니다. 아빠의 마음, 고민, 궁금한 점이
-                있다면 언제든 편하게 말해주세요.
-              </BotMessage>
-            </BotMessageBox>
-          </BotTextGroup>
-        </BotRow>
+              <BotMessageBox>
+                <BotMessage>
+                  안녕하세요, 아이키퍼입니다. 아빠의 마음, 고민, 궁금한 점이
+                  있다면 언제든 편하게 말해주세요.
+                </BotMessage>
+              </BotMessageBox>
+            </BotTextGroup>
+          </BotRow>
 
-        {messages.map((msg, idx) => {
-          if (msg.role === 'user') {
-            return (
-              <UserMessageBox key={idx}>
-                <UserMessage>{msg.content}</UserMessage>
-              </UserMessageBox>
-            );
-          } else if (msg.role === 'bot') {
-            return (
-              <BotRow key={idx}>
-                <ProfileCircle>
-                  <Bot width={24} height={24} />
-                </ProfileCircle>
-                <BotTextGroup>
-                  <BotMessageBox>
-                    <BotMessage>{msg.content}</BotMessage>
-                  </BotMessageBox>
-                </BotTextGroup>
-              </BotRow>
-            );
-          } else {
-            return null;
-          }
-        })}
-      </ScrollView>
-      <KeyboardAvoidingView>
+          {messages.map((msg, idx) => {
+            if (msg.role === 'user') {
+              return (
+                <UserMessageBox key={idx}>
+                  <UserMessage>{msg.content}</UserMessage>
+                </UserMessageBox>
+              );
+            } else if (msg.role === 'bot') {
+              return (
+                <BotRow key={idx}>
+                  <ProfileCircle>
+                    <Bot width={24} height={24} />
+                  </ProfileCircle>
+                  <BotTextGroup>
+                    <BotMessageBox>
+                      <BotMessage>{msg.content}</BotMessage>
+                    </BotMessageBox>
+                  </BotTextGroup>
+                </BotRow>
+              );
+            } else {
+              return null;
+            }
+          })}
+        </ScrollView>
+
         <InputRow>
           <MessageInput
             placeholder="메시지를 입력하세요."
