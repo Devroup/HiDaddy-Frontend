@@ -1,10 +1,21 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components/native';
 import { useNavigation } from '@react-navigation/native';
-import { Dimensions } from 'react-native';
+import { Dimensions, Linking } from 'react-native';
+import * as Keychain from 'react-native-keychain';
+import {
+  KAKAO_CLIENT_ID,
+  KAKAO_REDIRECT_URI,
+  NAVER_CLIENT_ID,
+  NAVER_REDIRECT_URI,
+  GOOGLE_CLIENT_ID,
+  GOOGLE_REDIRECT_URI,
+} from '@env';
 
 import colors from '../../constants/colors';
 import Background from '../../components/Background';
+import { post } from '../../services/api';
+import config from '../../constants/config';
 
 import { HmmText, HmmBText } from '../../components/CustomText';
 
@@ -17,11 +28,89 @@ const iconSize = Math.round(width * 0.045);
 
 const LoginScreen = () => {
   const navigation = useNavigation();
+  const [selectedProvider, setSelectedProvider] = useState(null);
 
   const handleLogin = () => {
     navigation.navigate('TutorialScreen');
   };
 
+  const getCodeFromUrl = url => {
+    const match = url.match(/[?&]code=([^&]+)/);
+    return match ? decodeURIComponent(match[1]) : null;
+  };
+
+  // 딥링크 수신 처리
+  useEffect(() => {
+    const handleDeepLink = async ({ url }) => {
+      console.log('딥링크 수신됨:', url);
+
+      try {
+        const code = getCodeFromUrl(url);
+        if (!code || !selectedProvider) {
+          console.log('code 또는 provider 없음');
+          return;
+        }
+
+        console.log('받은 code:', code, 'provider:', selectedProvider);
+
+        const payload = {
+          code,
+          provider: selectedProvider,
+        };
+
+        const response = await post(config.AUTH.TOKENS, payload);
+        const { accessToken, refreshToken, signed } = response;
+        console.log('Access Token:', accessToken);
+
+        await Keychain.setGenericPassword(
+          'token',
+          JSON.stringify({ accessToken, refreshToken }),
+        );
+
+        if (signed === true) {
+          navigation.reset({ index: 0, routes: [{ name: 'TabNavigator' }] });
+        } else if (signed === false) {
+          navigation.reset({ index: 0, routes: [{ name: 'TutorialScreen' }] });
+        } else {
+          console.warn('signed 값 이상함:', signed);
+        }
+      } catch (err) {
+        console.error('딥링크 처리 중 에러:', err);
+      }
+    };
+
+    Linking.getInitialURL().then(url => {
+      if (url) handleDeepLink({ url });
+    });
+
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+    return () => subscription.remove();
+  }, [selectedProvider]);
+
+  const openOAuthLogin = async provider => {
+    setSelectedProvider(provider);
+    let loginUrl = '';
+
+    if (provider === 'kakao') {
+      loginUrl =
+        `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}` +
+        `&redirect_uri=${KAKAO_REDIRECT_URI}` +
+        '&response_type=code&scope=account_email%20openid';
+    } else if (provider === 'naver') {
+      loginUrl =
+        `https://nid.naver.com/oauth2/authorize?response_type=code` +
+        `&client_id=${NAVER_CLIENT_ID}` +
+        `&redirect_uri=${NAVER_REDIRECT_URI}` +
+        '&state=random&scope=openid%20profile';
+    } else if (provider === 'google') {
+      loginUrl =
+        `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}` +
+        `&response_type=code&redirect_uri=${GOOGLE_REDIRECT_URI}` +
+        '&scope=email%20profile';
+    }
+
+    await Linking.openURL(loginUrl);
+  };
   return (
     <Wrapper>
       <Background />
@@ -29,14 +118,14 @@ const LoginScreen = () => {
         <Title>하이대디</Title>
 
         <ButtonContainer>
-          <NaverButton onPress={handleLogin}>
+          <NaverButton onPress={() => openOAuthLogin('naver')}>
             <IconWrapper>
               <NaverLogo width={iconSize} height={iconSize} />
             </IconWrapper>
             <NaverText>네이버로 시작하기</NaverText>
           </NaverButton>
 
-          <KakaoButton onPress={handleLogin}>
+          <KakaoButton onPress={() => openOAuthLogin('kakao')}>
             <IconWrapper>
               <KakaoLogo width={iconSize} height={iconSize} />
             </IconWrapper>
