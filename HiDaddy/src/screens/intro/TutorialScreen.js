@@ -1,11 +1,13 @@
 import React, { useRef, useState } from 'react';
 import styled from 'styled-components/native';
 import { useNavigation } from '@react-navigation/native';
-import { Dimensions, FlatList } from 'react-native';
+import { Dimensions, FlatList, Alert } from 'react-native';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 
 import colors from '../../constants/colors';
 import Background from '../../components/Background';
+import config from '../../constants/config';
+import { post } from '../../services/api';
 
 import { HmmText, HmmBText } from '../../components/CustomText';
 
@@ -68,11 +70,57 @@ const TutorialScreen = () => {
     setTwinBabyName('');
   };
 
-  const handleNext = () => {
+  const formatDate = date => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const handleNext = async () => {
     if (page < PAGES.length - 1) {
       flatListRef.current.scrollToIndex({ index: page + 1 });
-    } else {
-      navigation.replace('TabNavigator');
+      return;
+    }
+
+    try {
+      if (!nickname || !babyname || !dueDate) {
+        Alert.alert('입력 오류', '모든 정보를 입력해 주세요.');
+        return;
+      }
+
+      const babies = [
+        {
+          babyName: babyname,
+          dueDate: formatDate(dueDate),
+        },
+      ];
+
+      // 쌍둥이 정보가 입력되어 있으면 추가
+      if (showTwinInput && twinBabyName.trim()) {
+        babies.push({
+          babyName: twinBabyName.trim(),
+          dueDate: formatDate(dueDate), // 같은 예정일 공유
+        });
+      }
+
+      const payload = {
+        userName: nickname,
+        babies: babies,
+      };
+
+      const res = await post(config.USER.BABY, payload);
+
+      console.log('튜토리얼 등록 응답:', res);
+
+      if (res.status === 200) {
+        navigation.reset({ index: 0, routes: [{ name: 'TabNavigator' }] });
+      } else {
+        Alert.alert('등록 실패', res?.message || '서버 오류');
+      }
+    } catch (err) {
+      console.error('튜토리얼 등록 실패:', err);
+      Alert.alert('오류', '아기 정보를 등록하는 중 문제가 발생했어요.');
     }
   };
 

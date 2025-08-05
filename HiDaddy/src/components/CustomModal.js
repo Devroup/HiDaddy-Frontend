@@ -91,7 +91,7 @@ const ButtonRow = styled.View`
 
 const ConfirmButton = styled.TouchableOpacity`
   flex: 1;
-  height: ${width * 0.12};
+  height: ${width * 0.12}px;
   border-radius: 6px;
   justify-content: center;
   align-items: center;
@@ -104,7 +104,7 @@ const ConfirmButtonText = styled(HmmText)`
 
 const CancelButton = styled.TouchableOpacity`
   flex: 1;
-  height: ${width * 0.12};
+  height: ${width * 0.12}px;
   border-radius: 6px;
   justify-content: center;
   align-items: center;
