@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Dimensions, TouchableOpacity, Image } from 'react-native';
+import { Dimensions, TouchableOpacity, Alert } from 'react-native';
 import styled from 'styled-components/native';
 import { launchImageLibrary } from 'react-native-image-picker';
 
 import colors from '../../constants/colors';
 import { HmmText, HmmBText } from '../../components/CustomText';
+import config from '../../constants/config';
+import { get, patch } from '../../services/api';
 
 import UserIcon from '../../assets/imgs/icons/myprofile.svg';
 import EditIcon from '../../assets/imgs/icons/edit.svg';
@@ -15,40 +17,103 @@ const { width, height } = Dimensions.get('window');
 const MyInfoScreen = ({ navigation }) => {
   const [profileImage, setProfileImage] = useState(null);
   const [userInfo, setUserInfo] = useState({
-    nickname: '',
+    userName: '',
+    phone: '',
+    partnerPhone: '',
+    profileImage: '',
     email: '',
-    wifePhone: '',
-    hearts: 0,
+    hearts: 1000,
   });
 
-  // 나중에 API 연동하면...
-  useEffect(() => {
-    // 예시 데이터
-    setUserInfo({
-      userName: '채문영',
-      email: 'mcy325@naver.com',
-      phone: '010-0000-0000',
-      wifePhone: '010-0000-0000',
-      hearts: 1000,
-    });
-  }, []);
+  const handleChange = (key, value) => {
+    setUserInfo(prev => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
   const handleChangeProfileImage = () => {
-    launchImageLibrary({ mediaType: 'photo' }, response => {
+    launchImageLibrary({ mediaType: 'photo' }, async response => {
       if (!response.didCancel && !response.errorCode) {
-        const uri = response.assets[0].uri;
-        setProfileImage(uri);
-        // API로 업로드
+        const image = response.assets[0];
+        setProfileImage(image.uri);
+
+        const formData = new FormData();
+        formData.append('image', {
+          uri: image.uri,
+          type: image.type,
+          name: image.fileName,
+        });
+
+        try {
+          const res = await patch(config.USER.PROFILE_IMG, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+
+          setUserInfo(prev => ({
+            ...prev,
+            profileImage: image.uri,
+          }));
+
+          Alert.alert('성공', '프로필 이미지가 변경되었습니다.');
+        } catch (err) {
+          Alert.alert('실패', '이미지 업로드에 실패했습니다.');
+        }
       }
     });
   };
+
+  const handleEditUserName = async () => {
+    try {
+      const res = await patch(config.USER.NAME, {
+        userName: userInfo.userName,
+      });
+      Alert.alert('성공', '닉네임이 변경되었습니다.');
+    } catch (err) {
+      Alert.alert('실패', '닉네임 변경에 실패했습니다.');
+    }
+  };
+
+  const handleEditPhone = async () => {
+    try {
+      const res = await patch(config.USER.PHONE, {
+        phone: userInfo.phone,
+        partnerPhone: userInfo.partnerPhone,
+      });
+      Alert.alert('성공', '전화번호가 등록되었습니다.');
+    } catch (err) {
+      Alert.alert('실패', '전화번호 등록에 실패했습니다.');
+    }
+  };
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const res = await get(config.USER.ME);
+        setUserInfo({
+          userName: res.userName ?? '',
+          phone: res.phone ?? '',
+          partnerPhone: res.partnerPhone ?? '',
+          profileImage: res.profileImageUrl ?? '',
+          email: res.email ?? '',
+        });
+        console.log('ddd', res);
+      } catch (err) {
+        console.error('유저 정보 조회 실패:', err);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
 
   return (
     <Container>
       <ProfileArea>
         <TouchableOpacity onPress={handleChangeProfileImage}>
-          {profileImage ? (
-            <ProfileImg source={{ uri: profileImage }} />
+          {userInfo.profileImage ? (
+            <ProfileImg source={{ uri: userInfo.profileImage }} />
           ) : (
             <DefaultProfile>
               <UserIcon width={50} height={50} />
@@ -61,8 +126,13 @@ const MyInfoScreen = ({ navigation }) => {
         <InfoItem>
           <Label>닉네임</Label>
           <Row>
-            <Value>{userInfo.userName}</Value>
-            <TouchableOpacity>
+            <Input
+              value={userInfo.userName}
+              onChangeText={text => handleChange('userName', text)}
+              placeholder="닉네임 입력"
+              placeholderTextColor={colors.gray}
+            />
+            <TouchableOpacity onPress={handleEditUserName}>
               <EditIcon width={18} height={18} />
             </TouchableOpacity>
           </Row>
@@ -76,8 +146,14 @@ const MyInfoScreen = ({ navigation }) => {
         <InfoItem>
           <Label>내 전화번호</Label>
           <Row>
-            <Value>{userInfo.phone}</Value>
-            <TouchableOpacity>
+            <Input
+              value={userInfo.phone}
+              onChangeText={text => handleChange('phone', text)}
+              placeholder="내 전화번호를 아직 등록하지 않았습니다."
+              placeholderTextColor={colors.gray}
+              keyboardType="phone-pad"
+            />
+            <TouchableOpacity onPress={handleEditPhone}>
               <EditIcon width={18} height={18} />
             </TouchableOpacity>
           </Row>
@@ -86,8 +162,14 @@ const MyInfoScreen = ({ navigation }) => {
         <InfoItem>
           <Label>아내의 전화번호</Label>
           <Row>
-            <Value>{userInfo.wifePhone}</Value>
-            <TouchableOpacity>
+            <Input
+              value={userInfo.partnerPhone}
+              onChangeText={text => handleChange('partnerPhone', text)}
+              placeholder="아내의 전화번호를 아직 등록하지 않았습니다."
+              placeholderTextColor={colors.gray}
+              keyboardType="phone-pad"
+            />
+            <TouchableOpacity onPress={handleEditPhone}>
               <EditIcon width={18} height={18} />
             </TouchableOpacity>
           </Row>
@@ -97,7 +179,7 @@ const MyInfoScreen = ({ navigation }) => {
           <Label>보유한 하트</Label>
           <Row>
             <CoinIcon width={20} height={20} />
-            <Value style={{ marginLeft: 6 }}>{userInfo.hearts}</Value>
+            <Value style={{ marginLeft: 6 }}>1000</Value>
           </Row>
         </InfoItem>
       </InfoWrapper>
@@ -145,6 +227,15 @@ const Label = styled(HmmText)`
   font-size: 12px;
   color: ${colors.gray};
   margin-bottom: 8px;
+`;
+
+const Input = styled.TextInput`
+  flex: 1;
+  font-size: 16px;
+  color: ${colors.black};
+  font-family: 'HancomMalangMalang-Regular';
+  padding: 0;
+  margin-right: 6px;
 `;
 
 const Value = styled(HmmBText)`
