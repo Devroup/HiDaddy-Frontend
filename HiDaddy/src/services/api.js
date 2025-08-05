@@ -114,7 +114,10 @@ export const get = async (endpoint, params = {}, options = {}) => {
       throw new Error('서버에서 예상하지 못한 응답이 도착했습니다.');
     }
 
-    return response.data;
+    return {
+      ...response.data,
+      status: response.status,
+    };
   } catch (error) {
     //console.error('GET 요청 에러:', error?.response?.data || error.message);
     throw error;
@@ -133,7 +136,10 @@ export const post = async (endpoint, data, options = {}) => {
       throw new Error('서버 응답이 올바르지 않습니다.');
     }
 
-    return response.data;
+    return {
+      ...response.data,
+      status: response.status,
+    };
   } catch (error) {
     //console.error('POST 요청 에러:', error?.response?.data || error.message);
     throw error;
@@ -144,7 +150,10 @@ export const post = async (endpoint, data, options = {}) => {
 export const put = async (endpoint, data = {}, options = {}) => {
   try {
     const response = await api.put(endpoint, data, options);
-    return response.data;
+    return {
+      ...response.data,
+      status: response.status,
+    };
   } catch (error) {
     //console.error('PUT 요청 에러:', error.response?.data || error.message);
     throw error;
@@ -155,7 +164,10 @@ export const put = async (endpoint, data = {}, options = {}) => {
 export const patch = async (endpoint, data = {}, options = {}) => {
   try {
     const response = await api.patch(endpoint, data, options);
-    return response.data;
+    return {
+      ...response.data,
+      status: response.status,
+    };
   } catch (error) {
     // console.error('PATCH 요청 에러:', error.response?.data || error.message);
     throw error;
@@ -169,7 +181,10 @@ export const del = async (endpoint, options = {}) => {
       ...options,
       data: {},
     });
-    return response.data;
+    return {
+      ...response.data,
+      status: response.status,
+    };
   } catch (error) {
     //console.error('DELETE 요청 에러:', error.response?.data || error.message);
     throw error;
