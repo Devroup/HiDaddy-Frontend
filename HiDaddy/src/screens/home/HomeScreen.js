@@ -1,10 +1,12 @@
-import React, { use } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components/native';
 import { Image, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import colors from '../../constants/colors';
 import { HmmText, HmmBText } from '../../components/CustomText';
+import config from '../../constants/config';
+import { get } from '../../services/api';
 
 import Cloud from '../../assets/imgs/icons/cloud.svg';
 import RightArrow from '../../assets/imgs/icons/right_arrow';
@@ -14,6 +16,49 @@ const { width } = Dimensions.get('window');
 
 const HomeScreen = () => {
   const navigation = useNavigation();
+
+  const [babyname, setBabyname] = useState('');
+  const [dueDate, setDueDate] = useState(null);
+  const [groupId, setGroupId] = useState(null);
+
+  const [comment, setComment] = useState('');
+  const [dday, setDday] = useState('');
+
+  useEffect(() => {
+    const fetchBabyInfo = async () => {
+      try {
+        const res = await get(config.USER.BABY);
+
+        const twinBabies = res?.babies?.filter(b => b.twin === true) || [];
+
+        if (twinBabies.length === 1) {
+          setBabyname(twinBabies[0].name);
+        } else if (twinBabies.length >= 2) {
+          const names = twinBabies.map(b => b.name).join(', ');
+          setBabyname(names);
+        }
+
+        if (twinBabies.length > 0) {
+          setDueDate(new Date(twinBabies[0].dueDate));
+          setGroupId(twinBabies[0].babyGroupId);
+        }
+
+        setComment(res?.comment || '');
+        setDday(res?.dday || '');
+
+        console.log('아기 정보 응답:', res);
+      } catch (err) {
+        console.error('아기 정보 조회 실패:', err);
+        Alert.alert('오류', '아기 정보를 불러오는데 실패했어요.');
+      }
+    };
+
+    fetchBabyInfo();
+  }, []);
+
+  const babyImageSource = babyname.includes(',')
+    ? require('../../assets/imgs/baby/baby_two.png')
+    : require('../../assets/imgs/baby/baby_one.png');
 
   return (
     <Container>
@@ -35,22 +80,17 @@ const HomeScreen = () => {
         />
       </SkyBackground>
 
-      <BabyImage
-        source={require('../../assets/imgs/baby/baby_one.png')}
-        resizeMode="contain"
-      />
+      <BabyImage source={babyImageSource} resizeMode="contain" />
 
       <TextBox>
         <BabyInfo>
-          <BabyName>하늘이</BabyName>
-          <D>
-            D<Day>-300</Day>
-          </D>
+          <BabyName twin={babyname.includes(',')}>{babyname}</BabyName>
+          <Day>{dday}</Day>
         </BabyInfo>
 
         <Explain>
-          아직은 아주 작지만, 엄마 뱃속에서{'\n'}
-          새로운 생명이 싹트고 있어요.
+          {comment ||
+            '아직은 아주 작지만, 엄마 뱃속에서\n새로운 생명이 싹트고 있어요.'}
         </Explain>
 
         <TouchableRow
@@ -146,13 +186,8 @@ const BabyInfo = styled.View`
 `;
 
 const BabyName = styled(HmmBText)`
-  font-size: ${width * 0.06}px;
+  font-size: ${props => (props.twin ? width * 0.045 : width * 0.06)}px;
   margin-right: 10px;
-  color: ${colors.black};
-`;
-
-const D = styled(HmmBText)`
-  font-size: ${width * 0.038}px;
   color: ${colors.black};
 `;
 
@@ -166,6 +201,7 @@ const Explain = styled(HmmText)`
   color: ${colors.black};
   line-height: 20px;
   margin-bottom: 10px;
+  width: ${width * 0.5}px;
 `;
 
 const TouchableRow = styled.TouchableOpacity`
