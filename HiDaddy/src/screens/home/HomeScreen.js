@@ -73,6 +73,17 @@ const HomeScreen = () => {
           오늘 전하면 좋을 다정한 실천을 AI가 추천해드립니다.
         </DescriptionText>
 
+        <Image
+          source={require('../../assets/imgs/main/couple.png')}
+          style={{
+            width: 240,
+            height: 240,
+            alignSelf: 'center',
+            marginBottom: 20,
+          }}
+          resizeMode="contain"
+        />
+
         <TouchableRow
           onPress={() =>
             navigation.navigate('MissionStackNavigator', {
@@ -106,14 +117,14 @@ const Container = styled.View`
 `;
 
 const SkyBackground = styled.View`
-  height: ${width * 0.54}px;
+  height: ${width * 0.5}px;
   background-color: ${colors.lightBlue};
   position: relative;
 `;
 
 const BabyImage = styled.Image`
   position: absolute;
-  top: ${width * 0.14}px;
+  top: ${width * 0.12}px;
   right: ${width * 0.08}px;
   width: ${width * 0.3}px;
   height: ${width * 0.3}px;
@@ -124,7 +135,7 @@ const BabyImage = styled.Image`
 
 const TextBox = styled.View`
   position: absolute;
-  top: ${width * 0.14}px;
+  top: ${width * 0.12}px;
   left: ${width * 0.06}px;
 `;
 
@@ -169,17 +180,16 @@ const RowText = styled(HmmBText)`
 
 const Content = styled.View`
   padding: ${width * 0.06}px;
-  margin-top: 120px;
 `;
 
 const QuestionText = styled(HmmBText)`
-  font-size: ${width * 0.045}px;
+  font-size: ${width * 0.04}px;
   color: ${colors.black};
   margin-bottom: 10px;
 `;
 
 const DescriptionText = styled(HmmText)`
-  font-size: ${width * 0.038}px;
+  font-size: ${width * 0.036}px;
   color: ${colors.black};
   line-height: 24px;
   margin-bottom: 10px;
