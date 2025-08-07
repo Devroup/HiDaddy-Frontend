@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import styled from 'styled-components/native';
-import { Dimensions } from 'react-native';
+import { Dimensions, Alert } from 'react-native';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import colors from '../../constants/colors';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 
+import colors from '../../constants/colors';
 import { HmmText, HmmBText } from '../../components/CustomText';
+import config from '../../constants/config';
+import { post } from '../../services/api';
 
 import MinusIcon from '../../assets/imgs/icons/minus.svg';
 
 const { width } = Dimensions.get('window');
 
 const ProfileScreen = () => {
+  const navigation = useNavigation();
+
   const [dueDate, setDueDate] = useState(null);
   const [babyname, setBabyname] = useState('');
 
@@ -39,9 +44,64 @@ const ProfileScreen = () => {
     setTwinBabyName('');
   };
 
-  const babyImageSource = showTwinInput
-    ? require('../../assets/imgs/baby/baby_two.png')
-    : require('../../assets/imgs/baby/baby_one.png');
+  const formatDate = date => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const handleBabyAdd = async () => {
+    try {
+      if (!babyname || !dueDate) {
+        Alert.alert('입력 오류', '모든 정보를 입력해 주세요.');
+        return;
+      }
+
+      const babies = [
+        {
+          babyName: babyname,
+          dueDate: formatDate(dueDate),
+        },
+      ];
+
+      // 쌍둥이 정보가 입력되어 있으면 추가
+      if (showTwinInput && twinBabyName.trim()) {
+        babies.push({
+          babyName: twinBabyName.trim(),
+          dueDate: formatDate(dueDate), // 같은 예정일 공유
+        });
+      }
+
+      const payload = {
+        babies: babies,
+      };
+
+      const res = await post(config.USER.BABY, payload);
+
+      console.log('아기 정보 등록 응답:', res);
+
+      if (res.status === 200) {
+        Alert.alert('성공', '아이 프로필이 등록 되었습니다.');
+
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [
+              {
+                name: 'ProfileScreen',
+              },
+            ],
+          }),
+        );
+      } else {
+        Alert.alert('등록 실패', res?.message || '서버 오류');
+      }
+    } catch (err) {
+      console.error('아기 정보 등록 실패:', err);
+      Alert.alert('오류', '아기 정보를 등록하는 중 문제가 발생했어요.');
+    }
+  };
 
   return (
     <Container>
@@ -88,7 +148,7 @@ const ProfileScreen = () => {
           </TwinButton>
         )}
       </FormContainer>
-      <SaveButton>
+      <SaveButton onPress={handleBabyAdd}>
         <ButtonText>완료</ButtonText>
       </SaveButton>
     </Container>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components/native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -6,9 +6,12 @@ import {
   Modal,
   ScrollView,
   TouchableWithoutFeedback,
+  Alert,
 } from 'react-native';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import colors from '../../constants/colors';
+import config from '../../constants/config';
+import { get, del, patch } from '../../services/api';
 
 import { HmmText, HmmBText } from '../../components/CustomText';
 
@@ -30,6 +33,41 @@ const ProfileScreen = () => {
 
   const [showTwinInput, setShowTwinInput] = useState(false);
   const [twinBabyName, setTwinBabyName] = useState('');
+
+  const [allBabies, setAllBabies] = useState([]);
+  const [selectedBaby, setSelectedBaby] = useState(null);
+  const [groupId, setGroupId] = useState(null);
+
+  const fetchAllBabies = async () => {
+    try {
+      const res = await get(config.USER.ALL_BABIES);
+      console.log('All babies res:', res);
+
+      const babyGroups = Object.values(res).filter(
+        v => typeof v === 'object' && v.babies,
+      );
+
+      const uniqueBabies = babyGroups.map(group => {
+        const names = group.babies.map(b => b.name).join(', ');
+        const dueDate = group.dueDate;
+        const babyGroupId = group.babyGroupId;
+
+        return {
+          name: names,
+          dueDate,
+          babyGroupId,
+          image: group.twin
+            ? require('../../assets/imgs/baby/baby_two.png')
+            : require('../../assets/imgs/baby/baby_one.png'),
+        };
+      });
+
+      setChildren(uniqueBabies);
+    } catch (err) {
+      console.error('모든 아기 정보 조회 실패:', err);
+      Alert.alert('오류', '전체 아기 정보를 불러오는데 실패했어요.');
+    }
+  };
 
   const showDatePicker = () => {
     DateTimePickerAndroid.open({
@@ -57,9 +95,98 @@ const ProfileScreen = () => {
     ? require('../../assets/imgs/baby/baby_two.png')
     : require('../../assets/imgs/baby/baby_one.png');
 
+  const selectBaby = async groupId => {
+    try {
+      console.log('선택된 그룹 ID:', groupId);
+      await patch(config.USER.SELECT_BABY(groupId));
+      setShowModal(false);
+      Alert.alert('완료', '아기가 선택되었습니다.');
+    } catch (err) {
+      console.error('아기 선택 실패:', err);
+      Alert.alert('실패', '아기 선택 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleEdit = async (groupId, updatedName, updatedDueDate) => {
+    try {
+      const nameList = showTwinInput
+        ? [updatedName, twinBabyName].filter(Boolean)
+        : [updatedName];
+
+      const body = nameList.map(name => ({
+        name,
+        dueDate: updatedDueDate.toISOString().split('T')[0],
+      }));
+
+      await patch(config.USER.PATCH_BABY(groupId), body);
+
+      Alert.alert('성공', '아기 정보가 수정되었습니다.');
+      fetchAllBabies();
+    } catch (err) {
+      console.error('수정 오류:', err);
+      Alert.alert('실패', '아기 정보 수정 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleDelete = async groupId => {
+    Alert.alert('삭제 확인', '정말 삭제하시겠어요?', [
+      {
+        text: '취소',
+        style: 'cancel',
+      },
+      {
+        text: '삭제',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await del(config.USER.DEL_BABY(groupId));
+            Alert.alert('삭제 완료', '아기 정보가 삭제되었습니다.');
+            fetchAllBabies();
+          } catch (err) {
+            console.error('삭제 오류:', err);
+            Alert.alert('실패', '아기 정보 삭제 중 오류가 발생했습니다.');
+          }
+        },
+      },
+    ]);
+  };
+
+  useEffect(() => {
+    const fetchBabyInfo = async () => {
+      try {
+        const res = await get(config.USER.BABY);
+
+        const twinBabies = res?.babies?.filter(b => b.twin === true) || [];
+
+        if (twinBabies.length >= 1) {
+          setBabyname(twinBabies[0].name);
+          setDueDate(new Date(twinBabies[0].dueDate));
+          setGroupId(twinBabies[0].babyGroupId);
+        }
+
+        if (twinBabies.length >= 2) {
+          setShowTwinInput(true);
+          setTwinBabyName(twinBabies[1].name);
+        }
+
+        console.log('아기 정보 응답:', res);
+      } catch (err) {
+        console.error('아기 정보 조회 실패:', err);
+        Alert.alert('오류', '아기 정보를 불러오는데 실패했어요.');
+      }
+    };
+
+    fetchBabyInfo();
+  }, []);
+
   return (
     <Container>
-      <BabyImageTouchable onPress={() => setShowModal(true)}>
+      <BabyImageTouchable
+        onPress={() => {
+          fetchAllBabies();
+          setShowModal(true);
+        }}
+      >
         <BabyImage source={babyImageSource} resizeMode="contain" />
       </BabyImageTouchable>
 
@@ -81,7 +208,7 @@ const ProfileScreen = () => {
                 >
                   {children.map((child, idx) => (
                     <React.Fragment key={idx}>
-                      <ChildRow>
+                      <ChildRow onPress={() => selectBaby(child.babyGroupId)}>
                         <BabyImageSmall
                           source={child.image}
                           resizeMode="cover"
@@ -158,10 +285,10 @@ const ProfileScreen = () => {
         )}
       </FormContainer>
       <ButtonsWrapper>
-        <EditButton>
+        <EditButton onPress={() => handleEdit(groupId, babyname, dueDate)}>
           <ButtonText>수정</ButtonText>
         </EditButton>
-        <DeleteButton>
+        <DeleteButton onPress={() => handleDelete(groupId)}>
           <ButtonText>삭제</ButtonText>
         </DeleteButton>
       </ButtonsWrapper>
@@ -297,7 +424,7 @@ const ModalContainer = styled.View`
 
 const ModalFooter = styled.View``;
 
-const ChildRow = styled.View`
+const ChildRow = styled.TouchableOpacity`
   flex-direction: row;
   margin: ${width * 0.06}px;
   align-items: center;
