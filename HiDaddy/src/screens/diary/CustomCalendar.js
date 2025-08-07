@@ -100,11 +100,14 @@ const CalendarWrapper = styled.View`
 const CCHeader = styled.View`
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
   margin: 0 10px 10px 10px;
 `;
 
 const HeaderText = styled(HmmBText)`
   font-size: ${width * 0.045}px;
+  flex: 1;
+  text-align: left;
 `;
 
 const HeaderIcons = styled.View`
