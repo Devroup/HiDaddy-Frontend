@@ -99,7 +99,6 @@ const MyInfoScreen = ({ navigation }) => {
           profileImage: res.profileImageUrl ?? '',
           email: res.email ?? '',
         });
-        console.log('ddd', res);
       } catch (err) {
         console.error('유저 정보 조회 실패:', err);
       }
