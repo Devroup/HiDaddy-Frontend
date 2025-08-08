@@ -23,7 +23,23 @@ LocaleConfig.locales['kr'] = {
 
 LocaleConfig.defaultLocale = 'kr';
 
-const CustomCalendar = ({ currentDate, setCurrentDate }) => {
+const CustomCalendar = ({ currentDate, setCurrentDate, diaryDates = [] }) => {
+  // diaryDates: ['2025-08-01', '2025-08-05', ...] 형식으로 날짜 문자열 배열 받음
+
+  // markedDates 생성 (일기 쓴 날짜에 점 표시)
+  const markedDates = diaryDates.reduce((acc, dateStr) => {
+    acc[dateStr] = { marked: true, dotColor: colors.primary };
+    return acc;
+  }, {});
+
+  // 현재 선택된 날짜 강조 표시 추가
+  const currentDateStr = currentDate.toISOString().split('T')[0];
+  markedDates[currentDateStr] = {
+    ...(markedDates[currentDateStr] || {}),
+    selected: true,
+    selectedColor: colors.primary,
+  };
+
   const changeMonth = (direction) => {
     const newDate = new Date(currentDate);
     newDate.setMonth(currentDate.getMonth() + (direction === 'left' ? -1 : 1));
@@ -34,8 +50,10 @@ const CustomCalendar = ({ currentDate, setCurrentDate }) => {
     <CalendarWrapper>
       <Calendar
         key={currentDate.toISOString()}
-        current={currentDate.toDateString().split('T')[0]}
+        current={currentDate.toISOString().split('T')[0]}
         onMonthChange={(month) => setCurrentDate(new Date(month.dateString))}
+        onDayPress={(day) => setCurrentDate(new Date(day.dateString))}
+        markedDates={markedDates}
         firstDay={0}
         monthFormat={'yyyy년 MM월'}
         hideArrows={true}
@@ -55,7 +73,7 @@ const CustomCalendar = ({ currentDate, setCurrentDate }) => {
           </CCHeader>
         )}
         style={{
-          height: 520,
+          height: 650,
           paddingTop: 10,
         }}
         theme={{
