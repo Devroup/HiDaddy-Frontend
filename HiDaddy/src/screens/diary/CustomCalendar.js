@@ -23,7 +23,19 @@ LocaleConfig.locales['kr'] = {
 
 LocaleConfig.defaultLocale = 'kr';
 
-const CustomCalendar = ({ currentDate, setCurrentDate }) => {
+const CustomCalendar = ({ currentDate, setCurrentDate, diaryDates = [] }) => {
+  const markedDates = diaryDates.reduce((acc, dateStr) => {
+    acc[dateStr] = { marked: true, dotColor: colors.primary };
+    return acc;
+  }, {});
+
+  const currentDateStr = currentDate.toISOString().split('T')[0];
+  markedDates[currentDateStr] = {
+    ...(markedDates[currentDateStr] || {}),
+    selected: true,
+    selectedColor: colors.primary,
+  };
+
   const changeMonth = (direction) => {
     const newDate = new Date(currentDate);
     newDate.setMonth(currentDate.getMonth() + (direction === 'left' ? -1 : 1));
@@ -34,8 +46,10 @@ const CustomCalendar = ({ currentDate, setCurrentDate }) => {
     <CalendarWrapper>
       <Calendar
         key={currentDate.toISOString()}
-        current={currentDate.toDateString().split('T')[0]}
+        current={currentDate.toISOString().split('T')[0]}
         onMonthChange={(month) => setCurrentDate(new Date(month.dateString))}
+        onDayPress={(day) => setCurrentDate(new Date(day.dateString))}
+        markedDates={markedDates}
         firstDay={0}
         monthFormat={'yyyy년 MM월'}
         hideArrows={true}
@@ -55,7 +69,7 @@ const CustomCalendar = ({ currentDate, setCurrentDate }) => {
           </CCHeader>
         )}
         style={{
-          height: 520,
+          height: 650,
           paddingTop: 10,
         }}
         theme={{
@@ -100,11 +114,14 @@ const CalendarWrapper = styled.View`
 const CCHeader = styled.View`
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
   margin: 0 10px 10px 10px;
 `;
 
 const HeaderText = styled(HmmBText)`
   font-size: ${width * 0.045}px;
+  flex: 1;
+  text-align: left;
 `;
 
 const HeaderIcons = styled.View`

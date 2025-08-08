@@ -27,6 +27,18 @@ const config = {
   },
 
   // 채영: 나머지 필요한 API 추가하세요
+  COMMUNITY: {
+    CREATE_POST: `${BASE_URL}/api/community`, // 게시글 작성
+    GET_POST: `${BASE_URL}/api/community`,
+    FIX_POST: postId => `${BASE_URL}/api/community/${postId}`,
+    DEL_POST: postId => `${BASE_URL}/api/communuty/${postId}`,
+    POST_LIKE: postId => `${BASE_URL}/api/community/${postId}/like`,
+    GET_COMMENT: postId => `${BASE_URL}/api/community/${postId}/comments`,
+    CREATE_COMMENT: postId => `${BASE_URL}/api/community/${postId}/comments`,
+    FIX_COMMENT: (postId, commentId) => `${BASE_URL}/api/community/${postId}/comments/${commentId}`,
+    DEL_COMMENT: (postId, commentId) => `${BASE_URL}/api/community/${postId}/comments/${commentId}`,
+    COMMENT_LIKE: (postId, commentId) => `${BASE_URL}/api/community/${postId}/comments/${commentId}`
+  }
 };
 
 export default config;
