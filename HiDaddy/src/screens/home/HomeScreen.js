@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import styled from 'styled-components/native';
 import { Image, Dimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import colors from '../../constants/colors';
 import { HmmText, HmmBText } from '../../components/CustomText';
@@ -24,37 +24,48 @@ const HomeScreen = () => {
   const [comment, setComment] = useState('');
   const [dday, setDday] = useState('');
 
-  useEffect(() => {
-    const fetchBabyInfo = async () => {
-      try {
-        const res = await get(config.USER.BABY);
+  const [isTwinFromData, setIsTwinFromData] = useState(false);
 
-        const twinBabies = res?.babies?.filter(b => b.twin === true) || [];
+  const fetchBabyInfo = useCallback(async () => {
+    try {
+      const res = await get(config.USER.BABY);
+      const babies = Array.isArray(res?.babies) ? res.babies : [];
 
-        if (twinBabies.length === 1) {
-          setBabyname(twinBabies[0].name);
-        } else if (twinBabies.length >= 2) {
-          const names = twinBabies.map(b => b.name).join(', ');
-          setBabyname(names);
-        }
-
-        if (twinBabies.length > 0) {
-          setDueDate(new Date(twinBabies[0].dueDate));
-          setGroupId(twinBabies[0].babyGroupId);
-        }
-
-        setComment(res?.comment || '');
-        setDday(res?.dday || '');
-
-        console.log('아기 정보 응답:', res);
-      } catch (err) {
-        console.error('아기 정보 조회 실패:', err);
-        Alert.alert('오류', '아기 정보를 불러오는데 실패했어요.');
+      if (babies.length >= 1) {
+        setBabyname(
+          babies.length >= 2
+            ? babies.map(b => b.name).join(', ')
+            : babies[0].name,
+        );
+        setDueDate(babies[0]?.dueDate ? new Date(babies[0].dueDate) : null);
+        setGroupId(babies[0]?.babyGroupId ?? null);
+      } else {
+        setBabyname('');
+        setDueDate(null);
+        setGroupId(null);
       }
-    };
 
-    fetchBabyInfo();
+      const twinFlag =
+        typeof res?.twin === 'boolean' ? res.twin : babies.length >= 2;
+      setIsTwinFromData(twinFlag);
+
+      setComment(res?.comment || '');
+      setDday(res?.dday || '');
+    } catch (err) {
+      console.error('아기 정보 조회 실패:', err);
+      Alert.alert('오류', '아기 정보를 불러오는데 실패했어요.');
+    }
   }, []);
+
+  useEffect(() => {
+    fetchBabyInfo();
+  }, [fetchBabyInfo]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchBabyInfo();
+    }, [fetchBabyInfo]),
+  );
 
   const babyImageSource = babyname.includes(',')
     ? require('../../assets/imgs/baby/baby_two.png')
