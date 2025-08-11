@@ -51,7 +51,7 @@ const config = {
 
   WEEKLY: {
     WEEK: week => `${BASE_URL}/api/weekly/${week}`,
-    CURRENT: groupId => `${BASE_URL}/api/weely/${groupId}`,
+    CURRENT: groupId => `${BASE_URL}/api/weekly/current?groupId=${groupId}`,
   },
 };
 
