@@ -51,6 +51,7 @@ const HomeScreen = () => {
 
       setComment(res?.comment || '');
       setDday(res?.dday || '');
+      console.log(res);
     } catch (err) {
       console.error('아기 정보 조회 실패:', err);
       Alert.alert('오류', '아기 정보를 불러오는데 실패했어요.');
@@ -108,6 +109,7 @@ const HomeScreen = () => {
           onPress={() =>
             navigation.navigate('EtcStackNavigator', {
               screen: 'WeeklyInfoScreen',
+              params: { groupId },
             })
           }
         >
