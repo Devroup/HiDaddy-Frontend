@@ -30,10 +30,6 @@ const LoginScreen = () => {
   const navigation = useNavigation();
   const [selectedProvider, setSelectedProvider] = useState(null);
 
-  const handleLogin = () => {
-    navigation.navigate('TutorialScreen');
-  };
-
   const getCodeFromUrl = url => {
     const match = url.match(/[?&]code=([^&]+)/);
     return match ? decodeURIComponent(match[1]) : null;
@@ -132,7 +128,7 @@ const LoginScreen = () => {
             <KakaoText>카카오로 시작하기</KakaoText>
           </KakaoButton>
 
-          <GoogleButton onPress={handleLogin}>
+          <GoogleButton onPress={() => openOAuthLogin('google')}>
             <IconWrapper>
               <GoogleLogo width={iconSize} height={iconSize} />
             </IconWrapper>
