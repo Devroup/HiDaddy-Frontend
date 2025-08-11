@@ -26,7 +26,13 @@ const config = {
     SELECT_BABY: groupId => `${BASE_URL}/api/user/select-baby-group/${groupId}`, // 선택된 아기 변경
   },
 
-  // 채영: 나머지 필요한 API 추가하세요
+  MISSION: {
+    GET_MISSION: `${BASE_URL}/api/mission`, //미션 과거목록 조회
+    MISSION: `${BASE_URL}/api/mission/{missionId}`, // 과거 미션 상세 단건 조회
+    GET_MISSION_KEYWORD: `${BASE_URL}/api/mission/keyword`, //미션 사진촬영 키워드 조회(당일)
+    //AI_MISSION: `${BASE_URL}/apu/mission/ai  미션 AI 판독
+  },
+
   COMMUNITY: {
     CREATE_POST: `${BASE_URL}/api/community`, // 게시글 작성
     GET_POST: `${BASE_URL}/api/community`,
@@ -35,10 +41,18 @@ const config = {
     POST_LIKE: postId => `${BASE_URL}/api/community/${postId}/like`,
     GET_COMMENT: postId => `${BASE_URL}/api/community/${postId}/comments`,
     CREATE_COMMENT: postId => `${BASE_URL}/api/community/${postId}/comments`,
-    FIX_COMMENT: (postId, commentId) => `${BASE_URL}/api/community/${postId}/comments/${commentId}`,
-    DEL_COMMENT: (postId, commentId) => `${BASE_URL}/api/community/${postId}/comments/${commentId}`,
-    COMMENT_LIKE: (postId, commentId) => `${BASE_URL}/api/community/${postId}/comments/${commentId}`
-  }
+    FIX_COMMENT: (postId, commentId) =>
+      `${BASE_URL}/api/community/${postId}/comments/${commentId}`,
+    DEL_COMMENT: (postId, commentId) =>
+      `${BASE_URL}/api/community/${postId}/comments/${commentId}`,
+    COMMENT_LIKE: (postId, commentId) =>
+      `${BASE_URL}/api/community/${postId}/comments/${commentId}`,
+  },
+
+  WEEKLY: {
+    WEEK: week => `${BASE_URL}/api/weekly/${week}`,
+    CURRENT: groupId => `${BASE_URL}/api/weely/${groupId}`,
+  },
 };
 
 export default config;
