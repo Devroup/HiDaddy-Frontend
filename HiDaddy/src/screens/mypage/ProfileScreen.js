@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components/native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -23,40 +23,70 @@ const { width, height } = Dimensions.get('window');
 const ProfileScreen = () => {
   const navigation = useNavigation();
   const [showModal, setShowModal] = useState(false);
-  const [children, setChildren] = useState([
-    { name: '사랑이', image: require('../../assets/imgs/baby/baby_one.png') },
-    { name: '행복이', image: require('../../assets/imgs/baby/baby_two.png') },
-  ]);
+  const [children, setChildren] = useState([]);
 
   const [dueDate, setDueDate] = useState(null);
   const [babyname, setBabyname] = useState('');
 
   const [showTwinInput, setShowTwinInput] = useState(false);
   const [twinBabyName, setTwinBabyName] = useState('');
+  const [isTwinFromData, setIsTwinFromData] = useState(false);
 
-  const [allBabies, setAllBabies] = useState([]);
-  const [selectedBaby, setSelectedBaby] = useState(null);
   const [groupId, setGroupId] = useState(null);
 
-  const fetchAllBabies = async () => {
+  const babyImageSource = showTwinInput
+    ? require('../../assets/imgs/baby/baby_two.png')
+    : require('../../assets/imgs/baby/baby_one.png');
+
+  const fetchBabyInfo = useCallback(async () => {
+    try {
+      const res = await get(config.USER.BABY);
+      const babies = Array.isArray(res?.babies) ? res.babies : [];
+
+      if (babies.length >= 1) {
+        const first = babies[0];
+        setBabyname(first?.name ?? '');
+        setDueDate(first?.dueDate ? new Date(first.dueDate) : null);
+        setGroupId(first?.babyGroupId ?? null);
+      } else {
+        setBabyname('');
+        setDueDate(null);
+        setGroupId(null);
+      }
+
+      const twinFlag =
+        typeof res?.twin === 'boolean' ? res.twin : babies.length >= 2;
+      setIsTwinFromData(twinFlag);
+
+      setShowTwinInput(twinFlag);
+      setTwinBabyName(twinFlag ? babies[1]?.name ?? '' : '');
+    } catch (err) {
+      console.error('아기 정보 조회 실패:', err);
+      Alert.alert('오류', '아기 정보를 불러오는데 실패했어요.');
+    }
+  }, []);
+
+  const fetchAllBabies = useCallback(async () => {
     try {
       const res = await get(config.USER.ALL_BABIES);
-      console.log('All babies res:', res);
-
-      const babyGroups = Object.values(res).filter(
-        v => typeof v === 'object' && v.babies,
+      const babyGroups = Object.values(res || {}).filter(
+        v => v && typeof v === 'object' && Array.isArray(v.babies),
       );
 
       const uniqueBabies = babyGroups.map(group => {
-        const names = group.babies.map(b => b.name).join(', ');
+        const names = (group.babies ?? []).map(b => b.name).join(', ');
         const dueDate = group.dueDate;
         const babyGroupId = group.babyGroupId;
+        const isTwin =
+          typeof group.twin === 'boolean'
+            ? group.twin
+            : (group.babies ?? []).length >= 2;
 
         return {
           name: names,
           dueDate,
           babyGroupId,
-          image: group.twin
+          image: isTwin
             ? require('../../assets/imgs/baby/baby_two.png')
             : require('../../assets/imgs/baby/baby_one.png'),
         };
@@ -67,7 +97,73 @@ const ProfileScreen = () => {
       console.error('모든 아기 정보 조회 실패:', err);
       Alert.alert('오류', '전체 아기 정보를 불러오는데 실패했어요.');
     }
+  }, []);
+
+  const selectBaby = async gid => {
+    try {
+      await patch(config.USER.SELECT_BABY(gid));
+      await fetchBabyInfo();
+      setShowModal(false);
+      Alert.alert('완료', '아기가 선택되었습니다.');
+    } catch (err) {
+      console.error('아기 선택 실패:', err);
+      Alert.alert('실패', '아기 선택 중 오류가 발생했습니다.');
+    }
   };
+
+  const handleEdit = async (groupId, updatedName, updatedDueDate) => {
+    try {
+      const nameList = showTwinInput
+        ? [updatedName, twinBabyName].filter(Boolean)
+        : [updatedName];
+
+      const body = nameList.map(name => ({
+        name,
+        dueDate: updatedDueDate.toISOString().split('T')[0],
+      }));
+
+      await patch(config.USER.PATCH_BABY(groupId), body);
+
+      await fetchBabyInfo();
+      await fetchAllBabies();
+
+      Alert.alert('성공', '아기 정보가 수정되었습니다.');
+      fetchAllBabies();
+    } catch (err) {
+      console.error('수정 오류:', err);
+      Alert.alert('실패', '아기 정보 수정 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleDelete = async groupId => {
+    Alert.alert('삭제 확인', '정말 삭제하시겠어요?', [
+      {
+        text: '취소',
+        style: 'cancel',
+      },
+      {
+        text: '삭제',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await del(config.USER.DEL_BABY(groupId));
+
+            await fetchBabyInfo();
+            await fetchAllBabies();
+            Alert.alert('삭제 완료', '아기 정보가 삭제되었습니다.');
+            fetchAllBabies();
+          } catch (err) {
+            console.error('삭제 오류:', err);
+            Alert.alert('실패', '아기 정보 삭제 중 오류가 발생했습니다.');
+          }
+        },
+      },
+    ]);
+  };
+
+  useEffect(() => {
+    fetchBabyInfo();
+  }, []);
 
   const showDatePicker = () => {
     DateTimePickerAndroid.open({
@@ -90,94 +186,6 @@ const ProfileScreen = () => {
     setShowTwinInput(false);
     setTwinBabyName('');
   };
-
-  const babyImageSource = showTwinInput
-    ? require('../../assets/imgs/baby/baby_two.png')
-    : require('../../assets/imgs/baby/baby_one.png');
-
-  const selectBaby = async groupId => {
-    try {
-      console.log('선택된 그룹 ID:', groupId);
-      await patch(config.USER.SELECT_BABY(groupId));
-      setShowModal(false);
-      Alert.alert('완료', '아기가 선택되었습니다.');
-    } catch (err) {
-      console.error('아기 선택 실패:', err);
-      Alert.alert('실패', '아기 선택 중 오류가 발생했습니다.');
-    }
-  };
-
-  const handleEdit = async (groupId, updatedName, updatedDueDate) => {
-    try {
-      const nameList = showTwinInput
-        ? [updatedName, twinBabyName].filter(Boolean)
-        : [updatedName];
-
-      const body = nameList.map(name => ({
-        name,
-        dueDate: updatedDueDate.toISOString().split('T')[0],
-      }));
-
-      await patch(config.USER.PATCH_BABY(groupId), body);
-
-      Alert.alert('성공', '아기 정보가 수정되었습니다.');
-      fetchAllBabies();
-    } catch (err) {
-      console.error('수정 오류:', err);
-      Alert.alert('실패', '아기 정보 수정 중 오류가 발생했습니다.');
-    }
-  };
-
-  const handleDelete = async groupId => {
-    Alert.alert('삭제 확인', '정말 삭제하시겠어요?', [
-      {
-        text: '취소',
-        style: 'cancel',
-      },
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await del(config.USER.DEL_BABY(groupId));
-            Alert.alert('삭제 완료', '아기 정보가 삭제되었습니다.');
-            fetchAllBabies();
-          } catch (err) {
-            console.error('삭제 오류:', err);
-            Alert.alert('실패', '아기 정보 삭제 중 오류가 발생했습니다.');
-          }
-        },
-      },
-    ]);
-  };
-
-  useEffect(() => {
-    const fetchBabyInfo = async () => {
-      try {
-        const res = await get(config.USER.BABY);
-
-        const twinBabies = res?.babies?.filter(b => b.twin === true) || [];
-
-        if (twinBabies.length >= 1) {
-          setBabyname(twinBabies[0].name);
-          setDueDate(new Date(twinBabies[0].dueDate));
-          setGroupId(twinBabies[0].babyGroupId);
-        }
-
-        if (twinBabies.length >= 2) {
-          setShowTwinInput(true);
-          setTwinBabyName(twinBabies[1].name);
-        }
-
-        console.log('아기 정보 응답:', res);
-      } catch (err) {
-        console.error('아기 정보 조회 실패:', err);
-        Alert.alert('오류', '아기 정보를 불러오는데 실패했어요.');
-      }
-    };
-
-    fetchBabyInfo();
-  }, []);
 
   return (
     <Container>
@@ -323,7 +331,7 @@ const FormContainer = styled.View`
 `;
 
 const InputBox = styled.View`
-  width: ${width * 0.6};
+  width: ${width * 0.6}px;
   border-width: 1px;
   border-color: ${colors.black};
   border-radius: 8px;
