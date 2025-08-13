@@ -1,22 +1,102 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components/native';
-import { Dimensions } from 'react-native';
+import { Dimensions, FlatList, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import colors from '../../constants/colors';
 import Background from '../../components/Background';
+import { get } from '../../services/api';
+import config from '../../constants/config';
+
+import { HmmText, HmmBText } from '../../components/CustomText';
 
 import Write from '../../assets/imgs/icons/write.svg';
 import Profile from '../../assets/imgs/icons/myprofile.svg';
 import EmptyHeartlike from '../../assets/imgs/icons/heart_red_empty.svg';
 import Comment from '../../assets/imgs/icons/comment.svg';
 import Heartlike from '../../assets/imgs/icons/heart_red.svg';
-import { HmmText, HmmBText } from '../../components/CustomText';
 
 const { width } = Dimensions.get('window');
 
 const CommunityScreen = () => {
   const navigation = useNavigation();
+
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchPosts = async () => {
+    try {
+      const response = await get(config.COMMUNITY.GET_POST);
+      setPosts(response || []);
+    } catch (err) {
+      console.error('게시글 불러오기 실패:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const renderItem = ({ item }) => (
+    <PostWrapper
+      onPress={() =>
+        navigation.navigate('CommunityStackNavigator', {
+          screen: 'CommunityDetailScreen',
+          params: { postId: item.id },
+        })
+      }
+    >
+      <CommunityMainProfile>
+        <MainProfileIMG>
+          <Profile width={30} height={30} />
+        </MainProfileIMG>
+        <MainProfileText>
+          <ProfileId>
+            <Id>
+              <IdText>{item.nickname}</IdText>
+            </Id>
+            <Time>
+              <TimeText>{item.createdAt}</TimeText>
+            </Time>
+          </ProfileId>
+        </MainProfileText>
+      </CommunityMainProfile>
+
+      <CommunityMainContent>
+        <ContentText numberOfLines={3}>{item.content}</ContentText>
+      </CommunityMainContent>
+
+      <CommunityMainResponse>
+        <CommunityMainLike>
+          {item.liked ? (
+            <Heartlike width={24} height={24} />
+          ) : (
+            <EmptyHeartlike width={24} height={24} />
+          )}
+          <Heartlikecount>
+            <CountText>{item.likeCount}</CountText>
+          </Heartlikecount>
+        </CommunityMainLike>
+        <CommunityMainComment>
+          <Comment width={24} height={24} />
+          <Commentcount>
+            <CommentText>{item.commentCount}</CommentText>
+          </Commentcount>
+        </CommunityMainComment>
+      </CommunityMainResponse>
+    </PostWrapper>
+  );
+
+  if (loading) {
+    return (
+      <Wrapper>
+        <Background />
+        <ActivityIndicator size="large" color={colors.red} style={{ marginTop: 50 }} />
+      </Wrapper>
+    );
+  }
 
   return (
     <Wrapper>
@@ -36,58 +116,19 @@ const CommunityScreen = () => {
             </Touchable>
           </CommunityMainTitle>
         </CommunityMain>
-        <CommunityMainProfile>
-          <MainProfileIMG>
-            <Profile width={30} height={30} />
-          </MainProfileIMG>
-          <MainProfileText>
-            <ProfileId>
-              <Id>
-                <IdText>닉네임</IdText>
-              </Id>
-              <Time>
-                <TimeText>2025.05.24 19:35</TimeText>
-              </Time>
-            </ProfileId>
-          </MainProfileText>
-        </CommunityMainProfile>
 
-        <CommunityMainContent>
-          <Touchable
-            onPress={() =>
-              navigation.navigate('CommunityStackNavigator', {
-                screen: 'CommunityDetailScreen',
-              })
-            }
-          >
-            <ContentText>
-              나는 할 말이 없다. 왜냐하면 할 말이 없기 때문이다. 그러나 어쩔 수
-              없이 할 말을 적어야한다. 임시로 일단 적어 놓아야 디자인을 하던가
-              말던가 하기 때문이다. 근데 진짜 할 말이 없다. 아 할 말 있다. 집이
-              최고다.
-            </ContentText>
-          </Touchable>
-        </CommunityMainContent>
-        <CommunityMainImage></CommunityMainImage>
-
-        <CommunityMainResponse>
-          <CommunityMainLike>
-            <EmptyHeartlike width={24} height={24} />
-            <Heartlikecount>
-              <CountText>100</CountText>
-            </Heartlikecount>
-          </CommunityMainLike>
-          <CommunityMainComment>
-            <Comment width={24} height={24} />
-            <Commentcount>
-              <CommentText>12</CommentText>
-            </Commentcount>
-          </CommunityMainComment>
-        </CommunityMainResponse>
+        <FlatList
+          data={posts}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderItem}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 50 }}
+        />
       </Content>
     </Wrapper>
   );
 };
+
 export default CommunityScreen;
 
 const Wrapper = styled.View`
@@ -121,6 +162,13 @@ const Touchable = styled.TouchableOpacity`
   gap: ${width * 0.38}px;
 `;
 
+const PostWrapper = styled.TouchableOpacity`
+  margin-top: 20px;
+  border-bottom-width: 1px;
+  border-bottom-color: ${colors.gray100};
+  padding-bottom: 15px;
+`;
+
 const CommunityMainProfile = styled.View`
   flex-direction: row;
   margin-top: 16px;
@@ -144,7 +192,7 @@ const ProfileId = styled.View`
 const Id = styled.View``;
 
 const IdText = styled(HmmText)`
-  font-size: ${width * 0.038};
+  font-size: ${width * 0.038}px;
   color: ${colors.black};
 `;
 
@@ -153,7 +201,7 @@ const Time = styled.View`
 `;
 
 const TimeText = styled(HmmText)`
-  font-size: ${width * 0.034};
+  font-size: ${width * 0.034}px;
   color: ${colors.gray100};
 `;
 
@@ -162,8 +210,6 @@ const CommunityMainContent = styled.View`
 `;
 
 const ContentText = styled(HmmText)``;
-
-const CommunityMainImage = styled.View``;
 
 const CommunityMainResponse = styled.View`
   margin-top: 17px;
