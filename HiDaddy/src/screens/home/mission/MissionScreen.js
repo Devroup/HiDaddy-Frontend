@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components/native';
 import { Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -10,10 +10,29 @@ import RightArrow from '../../../assets/imgs/icons/right_arrow.svg';
 import HeartYellow from '../../../assets/imgs/icons/heart_yellow.svg';
 import { HmmText, HmmBText } from '../../../components/CustomText';
 
+import { post } from '../../../services/api';
+import config from '../../../constants/config';
+
 const { width } = Dimensions.get('window');
 
 const MissionScreen = () => {
     const navigation = useNavigation();
+    const [missionTitle, setMissionTitle] = useState('');
+
+    const fetchMission = async () => {
+        try {
+            const res = await post(config.MISSION.GET_MISSION_KEYWORD, {});
+            console.log('API 응답:', res);
+            setMissionTitle(res.title || '오늘의 마음 전하기');
+        } catch (error) {
+            console.error('미션 조회 실패:', error);
+            setMissionTitle('오늘의 마음 전하기');
+        }
+    };
+
+    useEffect(() => {
+        fetchMission();
+    }, []);
 
     return(
     <Wrapper>
@@ -34,7 +53,7 @@ const MissionScreen = () => {
                             navigation.navigate('MissionPerformScreen')
                         }
                     >
-                        <MissionText>아내에게 꽃을 선물하세요</MissionText>
+                        <MissionText>{missionTitle}</MissionText>
                         <RightArrow width={20} height={20}/>
                     </TouchableRow>
                 </MissionMainList>
@@ -56,14 +75,6 @@ const MissionScreen = () => {
                             <RightArrow width={20} height={20}/>
                         </DoneListRow>
                     </TouchableRow>
-                    <DoneListRow>
-                        <DoneListText>어쩌구 저쩌구 하기</DoneListText>
-                        <RightArrow width={20} height={20}/>
-                    </DoneListRow>
-                    <DoneListRow>
-                        <DoneListText>어쩌구 저쩌구 하기</DoneListText>
-                        <RightArrow width={20} height={20}/>
-                    </DoneListRow>
                 </MissionDoneList>
             </MissionDone>
         </Content>
@@ -105,7 +116,9 @@ const MissionMainList = styled.View`
 const TouchableRow = styled.TouchableOpacity`
     flex-direction: row;
     align-items: center;
-    gap: ${width * 0.38}px;
+    justify-content: space-between;
+    width: 100%;
+    padding-vertical: 5px;
 `;
 
 const MissionDoneTitle = styled.View`

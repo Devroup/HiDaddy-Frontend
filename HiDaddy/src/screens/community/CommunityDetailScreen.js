@@ -1,20 +1,148 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { Dimensions, KeyboardAvoidingView, Alert, TouchableOpacity } from 'react-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 
 import colors from '../../constants/colors';
-import { Dimensions, KeyboardAvoidingView } from 'react-native';
-
 import Dot from '../../assets/imgs/icons/dots.svg';
 import Profile from '../../assets/imgs/icons/myprofile.svg';
 import EmptyHeartlike from '../../assets/imgs/icons/heart_red_empty.svg';
-import Comment from '../../assets/imgs/icons/comment.svg';
+import CommentIcon from '../../assets/imgs/icons/comment.svg';
 import Heartlike from '../../assets/imgs/icons/heart_red.svg';
 import Send from '../../assets/imgs/icons/send.svg';
 import { HmmBText, HmmText } from '../../components/CustomText';
 
+import { get, post as apiPost, del } from '../../services/api';
+import config from '../../constants/config';
+
 const { width } = Dimensions.get('window');
 
 const CommunityDetailScreen = () => {
+  const route = useRoute();
+  const navigation = useNavigation();
+  const initialPost = route.params?.post;
+  const postId = initialPost?.id || route.params?.postId;
+
+  const [post, setPost] = useState(initialPost || null);
+  const [comments, setComments] = useState([]);
+  const [commentInput, setCommentInput] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const fetchPostDetail = async () => {
+    try {
+      const response = await get(config.COMMUNITY.DETAIL_POST(postId));
+      setPost(response);
+    } catch (err) {
+      console.log('게시글 상세 불러오기 실패:', err);
+    }
+  };
+
+  const fetchComments = async () => {
+    try {
+      const response = await get(config.COMMUNITY.GET_COMMENT(postId));
+      if (Array.isArray(response)) {
+        setComments([...response]);
+      } else {
+        setComments([]);
+      }
+    } catch (err) {
+      console.log('댓글 불러오기 실패:', err);
+      setComments([]);
+    }
+  };
+
+  const handleSend = async () => {
+    console.log('댓글 전송 시도:', commentInput, postId);
+    if (!commentInput.trim() || !postId) return;
+    try {
+      const response = await apiPost(config.COMMUNITY.CREATE_COMMENT(postId), { content: commentInput });
+      console.log('댓글 작성 성공:', response);
+      setCommentInput('');
+      fetchComments();
+    } catch (err) {
+      console.log('댓글 작성 실패:', err);
+    }
+  };
+
+  const handleToggleLike = async () => {
+    try {
+      await apiPost(config.COMMUNITY.POST_LIKE(postId));
+      setPost((prev) => ({
+        ...prev,
+        liked: !prev?.liked,
+        likeCount: prev?.liked ? prev.likeCount - 1 : prev.likeCount + 1,
+      }));
+    } catch (err) {
+      console.log('좋아요 토글 실패:', err);
+    }
+  };
+
+  const handleEditPost = () => {
+    navigation.navigate('CommunityWriteScreen', { post });
+  };
+
+  const handleDeletePost = async () => {
+    try {
+      await del(config.COMMUNITY.DEL_POST(postId));
+      navigation.goBack();
+    } catch (err) {
+      console.log('게시글 삭제 실패:', err);
+    }
+  };
+
+  const openMenu = () => {
+    Alert.alert('메뉴', '', [
+      { text: '수정', onPress: handleEditPost },
+      { 
+        text: '삭제', 
+        onPress: () =>
+          Alert.alert('삭제 확인', '정말 삭제하시겠습니까?', [
+            { text: '취소', style: 'cancel' },
+            { text: '삭제', style: 'destructive', onPress: handleDeletePost },
+          ])
+      },
+      { text: '취소', style: 'cancel' },
+    ]);
+  };
+
+  const formatDateTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
+  };
+
+  useEffect(() => {
+    if (postId) {
+      Promise.all([fetchPostDetail(), fetchComments()]).finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [postId]);
+
+  if (loading) {
+    return (
+      <Wrapper>
+        <Content>
+          <HmmText>로딩 중입니다...</HmmText>
+        </Content>
+      </Wrapper>
+    );
+  }
+
+  if (!post) {
+    return (
+      <Wrapper>
+        <Content>
+          <HmmText>게시글 정보를 찾을 수 없습니다.</HmmText>
+        </Content>
+      </Wrapper>
+    );
+  }
+
   return (
     <Wrapper>
       <Content>
@@ -25,59 +153,88 @@ const CommunityDetailScreen = () => {
           <MainProfileText>
             <ProfileId>
               <Id>
-                <IdText>닉네임</IdText>
+                <IdText>{post.authorName}</IdText>
               </Id>
               <Time>
-                <TimeText>2025.05.24 19:35</TimeText>
+                <TimeText>{formatDateTime(post.createdAt)}</TimeText>
               </Time>
             </ProfileId>
           </MainProfileText>
           <MainProfileFix>
-            <Tab>
+            <TouchableOpacity onPress={openMenu}>
               <Dot width={24} height={24} />
-            </Tab>
+            </TouchableOpacity>
           </MainProfileFix>
         </CommunityMainProfile>
 
         <CommunityMainContent>
-          <ContentText>
-            나는 할 말이 없다. 왜냐하면 할 말이 없기 때문이다. 그러나 어쩔 수
-            없이 할 말을 적어야한다. 임시로 일단 적어 놓아야 디자인을 하던가
-            말던가 하기 때문이다. 근데 진짜 할 말이 없다. 아 할 말 있다. 집이
-            최고다.
-          </ContentText>
+          <ContentText>{post.content}</ContentText>
+          {post.imageUrl && (
+            <PostImage
+              source={{ uri: post.imageUrl }}
+              resizeMode="cover"
+            />
+          )}
         </CommunityMainContent>
-        <CommunityMainImage></CommunityMainImage>
 
         <CommunityMainResponse>
           <CommunityMainLike>
-            <EmptyHeartlike width={24} height={24} />
+            <TouchableOpacity onPress={handleToggleLike}>
+              {post?.liked ? (
+                <Heartlike width={24} height={24} />
+              ) : (
+                <EmptyHeartlike width={24} height={24} />
+              )}
+            </TouchableOpacity>
             <Heartlikecount>
-              <CountText>100</CountText>
+              <CountText>{post.likeCount || 0}</CountText>
             </Heartlikecount>
           </CommunityMainLike>
           <CommunityMainComment>
-            <Comment width={24} height={24} />
+            <CommentIcon width={24} height={24} />
             <Commentcount>
-              <CommentText>12</CommentText>
+              <CommentText>{comments.length}</CommentText>
             </Commentcount>
           </CommunityMainComment>
         </CommunityMainResponse>
+
         <CommentList>
-          <UserProfile>
-            <Profile width={20} height={20} />
-            <Id>
-              <IdText>닉네임</IdText>
-            </Id>
-            <Time>
-              <TimeText>2025.05.25</TimeText>
-            </Time>
-          </UserProfile>
-          <Comments>
-            <CommentsText>할말이 없다.</CommentsText>
-            <EmptyHeartlike width={20} height={20} />
-          </Comments>
+          {Array.isArray(comments) &&
+            comments.map((c) => (
+              <CommentItem key={c.id}>
+                <UserProfile>
+                  <Profile width={20} height={20} />
+                  <Id>
+                    <IdText>{c.authorName}</IdText>
+                  </Id>
+                  <Time>
+                    <TimeText>{c.createdAt}</TimeText>
+                  </Time>
+                </UserProfile>
+                <Comments>
+                  <CommentsText>{c.content}</CommentsText>
+                  <EmptyHeartlike width={20} height={20} />
+                </Comments>
+              </CommentItem>
+            ))}
         </CommentList>
+
+        <KeyboardAvoidingView
+          behavior={undefined}
+          keyboardVerticalOffset={0}
+        >
+          <CommentInputWrapper>
+            <StyledTextInput
+              placeholder="댓글을 입력하세요."
+              placeholderTextColor={colors.gray100}
+              value={commentInput}
+              onChangeText={setCommentInput}
+            />
+            <SendButton onPress={handleSend}>
+              <Send width={28} height={28} />
+            </SendButton>
+          </CommentInputWrapper>
+        </KeyboardAvoidingView>
       </Content>
     </Wrapper>
   );
@@ -120,7 +277,7 @@ const ProfileId = styled.View`
 const Id = styled.View``;
 
 const IdText = styled(HmmText)`
-  font-size: ${width * 0.038};
+  font-size: ${width * 0.038}px;
   color: ${colors.black};
 `;
 
@@ -129,16 +286,12 @@ const Time = styled.View`
 `;
 
 const TimeText = styled(HmmText)`
-  font-size: ${width * 0.034};
+  font-size: ${width * 0.034}px;
   color: ${colors.gray100};
 `;
 
 const MainProfileFix = styled.View`
   flex-direction: row;
-`;
-
-const Tab = styled.View`
-  margin-left: ${width * 0.45}px;
 `;
 
 const CommunityMainContent = styled.View`
@@ -147,7 +300,12 @@ const CommunityMainContent = styled.View`
 
 const ContentText = styled(HmmText)``;
 
-const CommunityMainImage = styled.View``;
+const PostImage = styled.Image`
+  width: 100%;
+  height: 200px;
+  border-radius: 12px;
+  margin-top: 12px;
+`;
 
 const CommunityMainResponse = styled.View`
   margin-top: 17px;
@@ -188,6 +346,10 @@ const CommentList = styled.View`
   padding-bottom: ${width * 0.03}px;
 `;
 
+const CommentItem = styled.View`
+  margin-bottom: ${width * 0.03}px;
+`;
+
 const UserProfile = styled.View`
   flex-direction: row;
   gap: ${width * 0.02}px;
@@ -202,3 +364,27 @@ const Comments = styled.View`
 `;
 
 const CommentsText = styled(HmmText)``;
+
+const CommentInputWrapper = styled.View`
+  flex-direction: row;
+  align-items: center;
+  border-top-width: 1px;
+  border-top-color: ${colors.gray100};
+  padding: 8px 12px;
+  background-color: ${colors.white};
+`;
+
+const StyledTextInput = styled.TextInput`
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: ${colors.black};
+`;
+
+const SendButton = styled.TouchableOpacity`
+  padding-left: 8px;
+    justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+`;
