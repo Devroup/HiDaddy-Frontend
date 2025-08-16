@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components/native';
 import { Dimensions, FlatList, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import colors from '../../constants/colors';
 import Background from '../../components/Background';
@@ -27,7 +27,8 @@ const CommunityScreen = () => {
   const fetchPosts = async () => {
     try {
       const response = await get(config.COMMUNITY.GET_POST);
-      setPosts(response || []);
+      console.log('서버응답:', response);
+      setPosts(response?.content || []);
     } catch (err) {
       console.error('게시글 불러오기 실패:', err);
     } finally {
@@ -35,9 +36,23 @@ const CommunityScreen = () => {
     }
   };
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      fetchPosts();
+    }, [])
+  );
+
+  const formatDateTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
+  };
+
 
   const renderItem = ({ item }) => (
     <PostWrapper
@@ -55,10 +70,10 @@ const CommunityScreen = () => {
         <MainProfileText>
           <ProfileId>
             <Id>
-              <IdText>{item.nickname}</IdText>
+              <IdText>{item.authorName}</IdText>
             </Id>
             <Time>
-              <TimeText>{item.createdAt}</TimeText>
+              <TimeText>{formatDateTime(item.createdAt)}</TimeText>
             </Time>
           </ProfileId>
         </MainProfileText>
@@ -163,7 +178,6 @@ const Touchable = styled.TouchableOpacity`
 `;
 
 const PostWrapper = styled.TouchableOpacity`
-  margin-top: 20px;
   border-bottom-width: 1px;
   border-bottom-color: ${colors.gray100};
   padding-bottom: 15px;
@@ -177,7 +191,6 @@ const CommunityMainProfile = styled.View`
 
 const MainProfileIMG = styled.View`
   border-radius: 100px;
-  background-color: ${colors.gray100};
   border: 2px solid ${colors.black};
 `;
 

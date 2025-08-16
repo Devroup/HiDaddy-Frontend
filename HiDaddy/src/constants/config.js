@@ -29,15 +29,16 @@ const config = {
   MISSION: {
     GET_MISSION: `${BASE_URL}/api/mission`, //미션 과거목록 조회
     MISSION: `${BASE_URL}/api/mission/{missionId}`, // 과거 미션 상세 단건 조회
-    GET_MISSION_KEYWORD: `${BASE_URL}/api/mission/keyword`, //미션 사진촬영 키워드 조회(당일)
-    //AI_MISSION: `${BASE_URL}/apu/mission/ai  미션 AI 판독
+    PHOTO_MISSION: `${BASE_URL}/api/mission/{missionId}/analyze`,
+    GET_MISSION_KEYWORD: `${BASE_URL}/api/mission/today`, //미션 사진촬영 키워드 조회(당일)
   },
 
   COMMUNITY: {
     CREATE_POST: `${BASE_URL}/api/community`, // 게시글 작성
     GET_POST: `${BASE_URL}/api/community`,
+    DETAIL_POST: postId => `${BASE_URL}/api/community/${postId}`,
     FIX_POST: postId => `${BASE_URL}/api/community/${postId}`,
-    DEL_POST: postId => `${BASE_URL}/api/communuty/${postId}`,
+    DEL_POST: postId => `${BASE_URL}/api/community/${postId}`,
     POST_LIKE: postId => `${BASE_URL}/api/community/${postId}/like`,
     GET_COMMENT: postId => `${BASE_URL}/api/community/${postId}/comments`,
     CREATE_COMMENT: postId => `${BASE_URL}/api/community/${postId}/comments`,
