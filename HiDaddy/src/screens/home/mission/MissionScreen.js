@@ -157,11 +157,12 @@ const DoneListText = styled(HmmText)`
 `;
 
 const DoneListRow = styled.View`
+    width: 100%;
     flex-direction: row;
     align-items: center;
-    margin-top: 20px;
+    justify-content: space-between;
+    margin-top: 10px;
     border-bottom-width: 1px;
     border-bottom-color: ${colors.gray100};
-    padding-bottom: 10px;
-    gap: ${width * 0.5}px;
+    padding-bottom: 20px;
 `;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Dimensions, KeyboardAvoidingView, Alert, TouchableOpacity } from 'react-native';
+import { Dimensions, KeyboardAvoidingView, Alert, TouchableOpacity, FlatList } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
 import colors from '../../constants/colors';
@@ -12,7 +12,7 @@ import Heartlike from '../../assets/imgs/icons/heart_red.svg';
 import Send from '../../assets/imgs/icons/send.svg';
 import { HmmBText, HmmText } from '../../components/CustomText';
 
-import { get, post as apiPost, del } from '../../services/api';
+import { get, post as apiPost, del, put } from '../../services/api';
 import config from '../../constants/config';
 
 const { width } = Dimensions.get('window');
@@ -26,6 +26,7 @@ const CommunityDetailScreen = () => {
   const [post, setPost] = useState(initialPost || null);
   const [comments, setComments] = useState([]);
   const [commentInput, setCommentInput] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchPostDetail = async () => {
@@ -40,8 +41,8 @@ const CommunityDetailScreen = () => {
   const fetchComments = async () => {
     try {
       const response = await get(config.COMMUNITY.GET_COMMENT(postId));
-      if (Array.isArray(response)) {
-        setComments([...response]);
+      if (Array.isArray(response.content)) {
+        setComments([...response.content]);
       } else {
         setComments([]);
       }
@@ -52,15 +53,18 @@ const CommunityDetailScreen = () => {
   };
 
   const handleSend = async () => {
-    console.log('댓글 전송 시도:', commentInput, postId);
     if (!commentInput.trim() || !postId) return;
     try {
-      const response = await apiPost(config.COMMUNITY.CREATE_COMMENT(postId), { content: commentInput });
-      console.log('댓글 작성 성공:', response);
+      if (editingCommentId) {
+        await put(config.COMMUNITY.FIX_COMMENT(postId, editingCommentId), { content: commentInput });
+        setEditingCommentId(null);
+      } else {
+        await apiPost(config.COMMUNITY.CREATE_COMMENT(postId), { content: commentInput });
+      }
       setCommentInput('');
       fetchComments();
     } catch (err) {
-      console.log('댓글 작성 실패:', err);
+      console.log('댓글 전송 실패:', err);
     }
   };
 
@@ -105,6 +109,28 @@ const CommunityDetailScreen = () => {
     ]);
   };
 
+  const handleCommentMenu = (comment) => {
+    Alert.alert('댓글 메뉴', '', [
+      { text: '수정', onPress: () => handleEditComment(comment) },
+      { text: '삭제', onPress: () => handleDeleteComment(comment) },
+      { text: '취소', style: 'cancel' },
+    ]);
+  };
+
+  const handleEditComment = (comment) => {
+    setCommentInput(comment.content);
+    setEditingCommentId(comment.id);
+  };
+
+  const handleDeleteComment = async (comment) => {
+    try {
+      await del(config.COMMUNITY.DEL_COMMENT(postId, comment.id));
+      fetchComments();
+    } catch (err) {
+      console.log('댓글 삭제 실패:', err);
+    }
+  };
+
   const formatDateTime = (timestamp) => {
     const date = new Date(timestamp);
     const year = date.getFullYear();
@@ -147,19 +173,21 @@ const CommunityDetailScreen = () => {
     <Wrapper>
       <Content>
         <CommunityMainProfile>
-          <MainProfileIMG>
-            <Profile width={30} height={30} />
-          </MainProfileIMG>
-          <MainProfileText>
-            <ProfileId>
-              <Id>
-                <IdText>{post.authorName}</IdText>
-              </Id>
-              <Time>
-                <TimeText>{formatDateTime(post.createdAt)}</TimeText>
-              </Time>
-            </ProfileId>
-          </MainProfileText>
+          <MainProfileLeft>
+            <MainProfileIMG>
+              <Profile width={30} height={30} />
+            </MainProfileIMG>
+            <MainProfileText>
+              <ProfileId>
+                <Id>
+                  <IdText>{post.authorName}</IdText>
+                </Id>
+                <Time>
+                  <TimeText>{formatDateTime(post.createdAt)}</TimeText>
+                </Time>
+              </ProfileId>
+            </MainProfileText>
+          </MainProfileLeft>
           <MainProfileFix>
             <TouchableOpacity onPress={openMenu}>
               <Dot width={24} height={24} />
@@ -169,22 +197,13 @@ const CommunityDetailScreen = () => {
 
         <CommunityMainContent>
           <ContentText>{post.content}</ContentText>
-          {post.imageUrl && (
-            <PostImage
-              source={{ uri: post.imageUrl }}
-              resizeMode="cover"
-            />
-          )}
+          {post.imageUrl && <PostImage source={{ uri: post.imageUrl }} resizeMode="cover" />}
         </CommunityMainContent>
 
         <CommunityMainResponse>
           <CommunityMainLike>
             <TouchableOpacity onPress={handleToggleLike}>
-              {post?.liked ? (
-                <Heartlike width={24} height={24} />
-              ) : (
-                <EmptyHeartlike width={24} height={24} />
-              )}
+              {post?.liked ? <Heartlike width={24} height={24} /> : <EmptyHeartlike width={24} height={24} />}
             </TouchableOpacity>
             <Heartlikecount>
               <CountText>{post.likeCount || 0}</CountText>
@@ -198,31 +217,39 @@ const CommunityDetailScreen = () => {
           </CommunityMainComment>
         </CommunityMainResponse>
 
-        <CommentList>
-          {Array.isArray(comments) &&
-            comments.map((c) => (
-              <CommentItem key={c.id}>
-                <UserProfile>
-                  <Profile width={20} height={20} />
-                  <Id>
-                    <IdText>{c.authorName}</IdText>
-                  </Id>
-                  <Time>
-                    <TimeText>{c.createdAt}</TimeText>
-                  </Time>
-                </UserProfile>
-                <Comments>
-                  <CommentsText>{c.content}</CommentsText>
-                  <EmptyHeartlike width={20} height={20} />
-                </Comments>
-              </CommentItem>
-            ))}
-        </CommentList>
+        <FlatList
+          data={comments}
+          keyExtractor={(item) => item.id.toString()}
+          ListEmptyComponent={<CommentsText>댓글이 없습니다.</CommentsText>}
+          renderItem={({ item: c }) => (
+            <CommentItem key={c.id}>
+              <UserProfile>
+                <Profile width={20} height={20} />
+                <Id>
+                  <IdText>{c.authorName}</IdText>
+                </Id>
+                <Time>
+                  <TimeText>{formatDateTime(c.createdAt)}</TimeText>
+                </Time>
+              </UserProfile>
 
-        <KeyboardAvoidingView
-          behavior={undefined}
-          keyboardVerticalOffset={0}
-        >
+              <CommentsRow>
+                <CommentsText>{c.content}</CommentsText>
+                <CommentActions>
+                  <TouchableOpacity style={{ marginRight: 8 }}>
+                    <EmptyHeartlike width={20} height={20} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleCommentMenu(c)}>
+                    <Dot width={20} height={20} />
+                  </TouchableOpacity>
+                </CommentActions>
+              </CommentsRow>
+            </CommentItem>
+          )}
+          contentContainerStyle={{ paddingBottom: 20, marginTop: width * 0.04 }}
+        />
+
+        <KeyboardAvoidingView behavior={undefined} keyboardVerticalOffset={0}>
           <CommentInputWrapper>
             <StyledTextInput
               placeholder="댓글을 입력하세요."
@@ -255,15 +282,20 @@ const Content = styled.View`
 const CommunityMainProfile = styled.View`
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
   border-bottom-width: 1px;
   border-bottom-color: ${colors.gray100};
   padding-bottom: 10px;
 `;
 
+const MainProfileLeft = styled.View`
+  flex-direction: row;
+  align-items: center;
+`;
+
 const MainProfileIMG = styled.View`
   border-radius: 100px;
   border: 2px solid ${colors.black};
-  background-color: ${colors.gray100};
 `;
 
 const MainProfileText = styled.View`
@@ -302,7 +334,7 @@ const ContentText = styled(HmmText)``;
 
 const PostImage = styled.Image`
   width: 100%;
-  height: 200px;
+  height: 300px;
   border-radius: 12px;
   margin-top: 12px;
 `;
@@ -339,15 +371,11 @@ const Commentcount = styled.View`
 
 const CommentText = styled(HmmBText)``;
 
-const CommentList = styled.View`
-  margin-top: ${width * 0.04}px;
-  border-bottom-width: 1px;
-  border-bottom-color: ${colors.gray100};
-  padding-bottom: ${width * 0.03}px;
-`;
-
 const CommentItem = styled.View`
   margin-bottom: ${width * 0.03}px;
+  border-bottom-width: 1px;
+  border-bottom-color: ${colors.gray100};
+  padding-bottom: ${width * 0.02}px;
 `;
 
 const UserProfile = styled.View`
@@ -356,13 +384,19 @@ const UserProfile = styled.View`
   align-items: center;
 `;
 
-const Comments = styled.View`
+const CommentsRow = styled.View`
   flex-direction: row;
-  gap: ${width * 0.53}px;
-  margin-top: ${width * 0.015}px;
+  justify-content: space-between;
+  align-items: center;
   margin-left: ${width * 0.07}px;
+  margin-top: ${width * 0.015}px;
 `;
 
+const CommentActions = styled.View`
+  flex-direction: row;
+  align-items: center;
+`;
+const Comments = styled.View``;
 const CommentsText = styled(HmmText)``;
 
 const CommentInputWrapper = styled.View`
@@ -383,7 +417,7 @@ const StyledTextInput = styled.TextInput`
 
 const SendButton = styled.TouchableOpacity`
   padding-left: 8px;
-    justify-content: center;
+  justify-content: center;
   align-items: center;
   width: 40px;
   height: 40px;
