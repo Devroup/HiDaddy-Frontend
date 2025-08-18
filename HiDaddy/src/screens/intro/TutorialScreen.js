@@ -96,11 +96,10 @@ const TutorialScreen = () => {
         },
       ];
 
-      // 쌍둥이 정보가 입력되어 있으면 추가
       if (showTwinInput && twinBabyName.trim()) {
         babies.push({
           babyName: twinBabyName.trim(),
-          dueDate: formatDate(dueDate), // 같은 예정일 공유
+          dueDate: formatDate(dueDate),
         });
       }
 
