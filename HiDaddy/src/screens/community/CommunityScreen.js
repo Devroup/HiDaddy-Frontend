@@ -227,8 +227,6 @@ const ContentText = styled(HmmText)``;
 const CommunityMainResponse = styled.View`
   margin-top: 17px;
   flex-direction: row;
-  border-bottom-width: 1px;
-  border-bottom-color: ${colors.gray100};
   padding-bottom: 10px;
 `;
 

@@ -1,112 +1,166 @@
 import React, { useLayoutEffect, useState } from 'react';
 import styled from 'styled-components/native';
 import colors from '../../constants/colors';
+import { post } from '../../services/api';
+import config from '../../constants/config';
 
 import Send from '../../assets/imgs/icons/send.svg';
 import Gallery from '../../assets/imgs/icons/addimg.svg';
 import { HmmBText, HmmText } from '../../components/CustomText';
 import { useNavigation } from '@react-navigation/native';
-import { Dimensions, View } from 'react-native';
+import { Dimensions, View, Alert, TouchableOpacity, Image } from 'react-native';
 import CustomButton from '../../components/CustomButton';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 const { width } = Dimensions.get('window');
 
 const DiaryWriteScreen = () => {
-    const navigation = useNavigation();
-    const [isEditing, setIsEditing] = useState(true);
-    const [diaryText, setDiaryText] = useState('');
-    const [messageText, setMessageText] = useState('');
+  const navigation = useNavigation();
+  const [isEditing, setIsEditing] = useState(true);
+  const [diaryText, setDiaryText] = useState('');
+  const [messageText, setMessageText] = useState(''); // 메시지 필드는 FormData에 포함 안 함 (API에 없으므로)
+  const [imageUri, setImageUri] = useState(null);
 
-    useLayoutEffect(()=>{
-        navigation.setOptions({
-            headerRight:() => {
-                if (isEditing) {
-                    return (
-                        <CustomButton
-                            title="완료"
-                            onPress={() => {
-                                console.log('일기 저장됨:', diaryText, messageText);
-                                setIsEditing(false);
-                            }}
-                        />
-                    );
-                } else {
-                    return (
-                        <View style={{flexDirection: 'row'}}>
-                            <CustomButton
-                                title="삭제"
-                                variant="delete"
-                                backgroundColor={colors.red}
-                                colors="red"
-                                onPress={() => {
-                                    console.log('삭제됨');
-                                    navigation.goBack();
-                                }}
-                                style={{marginRight: 12}}
-                            />
-                            <CustomButton
-                                title="수정"
-                                variant="edit"
-                                onPress={() => {
-                                    setIsEditing(true);
-                                }}
-                            />
-                        </View>
-                    );
-                }
-            },
+  const getFormattedDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    const day = today.getDate();
+    return `${year}년 ${month}월 ${day}일`;
+  };
+
+  const handleSelectImage = () => {
+    launchImageLibrary(
+      { mediaType: 'photo', quality: 0.8 },
+      (response) => {
+        if (response.didCancel) return;
+        if (response.errorCode) {
+          Alert.alert('이미지 선택 오류', response.errorMessage);
+          return;
+        }
+        if (response.assets && response.assets.length > 0) {
+          setImageUri(response.assets[0].uri);
+          console.log('선택한 이미지 URI:', response.assets[0].uri);
+        }
+      }
+    );
+  };
+
+  const handleCreateDiary = async () => {
+    if (!diaryText) {
+      Alert.alert('작성 내용이 없습니다', '일기를 작성해주세요.');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('content', diaryText);
+      formData.append('date', new Date().toISOString().split('T')[0]);
+
+      if (imageUri) {
+        formData.append('image', {
+          uri: imageUri,
+          type: 'image/jpeg',
+          name: 'photo.jpg',
         });
-    }, [navigation, isEditing, diaryText, messageText]);
+      }
 
-    return(
+      const response = await post(config.DIARY.CREATE_DIARY, formData);
+      console.log('일기 생성 성공:', response.data);
+      setIsEditing(false);
+      Alert.alert('완료', '일기가 저장되었습니다.');
+    } catch (error) {
+      console.error('일기 생성 실패:', error);
+      if (error.response) console.error('서버 응답 데이터:', error.response.data);
+      else if (error.request) console.error('요청은 전송됐으나 응답 없음:', error.request);
+      else console.error('요청 설정 오류:', error.message);
+      Alert.alert('오류', '일기 생성에 실패했습니다.');
+    }
+  };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => {
+        if (isEditing) {
+          return <CustomButton title="완료" onPress={handleCreateDiary} />;
+        } else {
+          return (
+            <View style={{ flexDirection: 'row' }}>
+              <CustomButton
+                title="삭제"
+                variant="delete"
+                backgroundColor={colors.red}
+                colors="red"
+                onPress={() => navigation.goBack()}
+                style={{ marginRight: 12 }}
+              />
+              <CustomButton title="수정" variant="edit" onPress={() => setIsEditing(true)} />
+            </View>
+          );
+        }
+      },
+    });
+  }, [navigation, isEditing, diaryText, imageUri]);
+
+  return (
     <Wrapper>
-        <Content>
-            <DiaryTopSection>
-                <DiaryMain>
-                    <DiaryTitle>
-                        <MainTitle>2025년 5월 28일</MainTitle>
-                    </DiaryTitle>
-                </DiaryMain>
+      <Content>
+        <DiaryTopSection>
+          <DiaryMain>
+            <DiaryTitle>
+              <MainTitle>{getFormattedDate()}</MainTitle>
+            </DiaryTitle>
+          </DiaryMain>
 
-                <DiaryMainContent>
-                    <DiaryInput
-                        value={diaryText}
-                        onChangeText={setDiaryText}
-                        editable={isEditing}
-                        placeholder={"어느덧 15주차네요.\n아내를 향한 진심을 전달해보는 건 어떨까요?"}
-                        placeholderTextColor="#999"
-                        multiline={true}
-                        textAlignVertical="top"
-                    />
-                </DiaryMainContent>
-            </DiaryTopSection>
-            <DiarySubContent>
-                <DiaryMessage>
-                    <MessageTitle>
-                        아내에게 하고싶은 말 한마디
-                    </MessageTitle>
-                    <MessageContent>
-                        <MessageInput
-                            value={messageText}
-                            onChangeText={setMessageText}
-                            editable={isEditing}
-                            placeholder={"직접 말하지 못한걸 글로 표현해보는건 어떨까요?"}
-                            placeholderTextColor="#999"
-                            multiline={true}
-                            textAlignVertical="top"
-                        />
-                        <Send width={30} height={30}/>
-                    </MessageContent>
-                    
-                </DiaryMessage>
-                <DiaryRecordImg>
-                    <RecordContent>
-                        <ImgText>초음파 사진 한 장을 첨부하세요</ImgText>
-                        <Gallery width={30} height={30}/>
-                    </RecordContent>
-                </DiaryRecordImg>
-            </DiarySubContent>
-        </Content>
+          <DiaryMainContent>
+            <DiaryInput
+              value={diaryText}
+              onChangeText={setDiaryText}
+              editable={isEditing}
+              placeholder={"어느덧 15주차네요.\n아내를 향한 진심을 전달해보는 건 어떨까요?"}
+              placeholderTextColor="#999"
+              multiline
+              textAlignVertical="top"
+            />
+          </DiaryMainContent>
+        </DiaryTopSection>
+
+        <DiarySubContent>
+          <DiaryMessage>
+            <MessageTitle>아내에게 하고싶은 말 한마디</MessageTitle>
+            <MessageContent>
+              <MessageInput
+                value={messageText}
+                onChangeText={setMessageText}
+                editable={isEditing}
+                placeholder={"직접 말하지 못한걸 글로 표현해보는건 어떨까요?"}
+                placeholderTextColor="#999"
+                multiline
+                textAlignVertical="top"
+              />
+              <Send width={30} height={30} />
+            </MessageContent>
+          </DiaryMessage>
+
+          <DiaryRecordImg>
+            <TouchableOpacity onPress={handleSelectImage}>
+              <CommunityAddImg>
+                {imageUri ? (
+                  <>
+                    <ImagePreview source={{ uri: imageUri }} />
+                    <AttachText>이미지 첨부됨</AttachText>
+                  </>
+                ) : (
+                  <GalleryRow>
+                    <AttachText>초음파 사진 한 장을 첨부하세요</AttachText>
+                    <Gallery width={30} height={30} />
+                  </GalleryRow>
+                )}
+              </CommunityAddImg>
+            </TouchableOpacity>
+          </DiaryRecordImg>
+        </DiarySubContent>
+      </Content>
     </Wrapper>
   );
 };
@@ -114,82 +168,91 @@ const DiaryWriteScreen = () => {
 export default DiaryWriteScreen;
 
 const Wrapper = styled.View`
-    flex: 1;
-    background-color: ${colors.white};
+  flex: 1;
+  background-color: ${colors.white};
 `;
 
 const Content = styled.View`
-    flex: 1;
-    padding: ${width * 0.07}px;
-    padding-bottom: ${width * 0.15}px;
-    justify-content: space-between;
+  flex: 1;
+  padding: ${width * 0.07}px;
+  padding-bottom: ${width * 0.15}px;
+  justify-content: space-between;
 `;
 
 const DiaryMain = styled.View``;
-
 const DiaryTopSection = styled.View``;
 
 const DiaryTitle = styled.View`
-    border-bottom-width: 1px;
-    border-bottom-color: ${colors.gray100};
-    padding-bottom: 10px;
+  border-bottom-width: 1px;
+  border-bottom-color: ${colors.gray100};
+  padding-bottom: 10px;
 `;
 
 const MainTitle = styled(HmmBText)`
-    font-size: ${width*0.04}px;
-    color: ${colors.black};
+  font-size: ${width * 0.04}px;
+  color: ${colors.black};
 `;
 
-const DiaryMainContent = styled.View`
-
-`;
+const DiaryMainContent = styled.View``;
 
 const DiaryInput = styled.TextInput`
-    font-family: "HancomMalangMalang-Regular";
-    font-size: ${width*0.038}px;
-    line-height: 23px;
+  font-family: "HancomMalangMalang-Regular";
+  font-size: ${width * 0.038}px;
+  line-height: 23px;
 `;
 
 const DiarySubContent = styled.View`
-    border-top-width: 1px;
-    border-top-color: ${colors.gray100};
-    padding-top: ${width*0.01}px;
+  border-top-width: 1px;
+  border-top-color: ${colors.gray100};
+  padding-top: ${width * 0.01}px;
 `;
 
 const DiaryMessage = styled.View`
-    margin-top: ${width*0.05}px;
+  margin-top: ${width * 0.05}px;
 `;
 
 const MessageTitle = styled(HmmBText)`
-    font-size: ${width*0.04}px;
+  font-size: ${width * 0.04}px;
 `;
 
 const MessageContent = styled.View`
-    flex-direction: row;
-    align-items: center;
-    gap: ${width*0.02}px;
+  flex-direction: row;
+  align-items: center;
+  gap: ${width * 0.02}px;
 `;
 
 const MessageInput = styled.TextInput`
-    font-family: "HancomMalangMalang-Regular";
-    font-size: ${width*0.038}px;
-    line-height: 23px;
+  flex: 1;
+  font-family: "HancomMalangMalang-Regular";
+  font-size: ${width * 0.038}px;
+  line-height: 23px;
 `;
 
 const DiaryRecordImg = styled.View`
-    border-top-width: 1px;
-    border-top-color: ${colors.gray100};
-    margin-top: ${width*0.04}px;
+  border-top-width: 1px;
+  border-top-color: ${colors.gray100};
+  margin-top: ${width * 0.04}px;
 `;
 
-const ImgText = styled(HmmText)`
-    margin-top: ${width*0.04}px;
-    color: ${colors.gray200};
-    font-size: ${width*0.038}px;
+const CommunityAddImg = styled.View`
+  padding: ${width * 0.02}px 0;
 `;
 
-const RecordContent = styled.View`
-    flex-direction: row;
-    align-items: flex-end;
-    gap: ${width*0.3}px;
+const GalleryRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: ${width * 0.03}px;
+`;
+
+const AttachText = styled(HmmText)`
+  color: ${colors.gray200};
+  font-size: ${width * 0.038}px;
+`;
+
+const ImagePreview = styled.Image`
+  width: ${width * 0.6}px;
+  height: ${width * 0.4}px;
+  border-radius: 12px;
+  margin-bottom: 5px;
 `;

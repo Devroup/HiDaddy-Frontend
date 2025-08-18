@@ -28,9 +28,17 @@ const config = {
 
   MISSION: {
     GET_MISSION: `${BASE_URL}/api/mission`, //미션 과거목록 조회
-    MISSION: `${BASE_URL}/api/mission/{missionId}`, // 과거 미션 상세 단건 조회
-    PHOTO_MISSION: `${BASE_URL}/api/mission/{missionId}/analyze`,
+    MISSION: missionId =>`${BASE_URL}/api/mission/${missionId}`, // 과거 미션 상세 단건 조회
+    PHOTO_MISSION: missionId => `${BASE_URL}/api/mission/${missionId}/analyze`,
     GET_MISSION_KEYWORD: `${BASE_URL}/api/mission/today`, //미션 사진촬영 키워드 조회(당일)
+  },
+
+  DIARY: {
+    GET_DIARY: `${BASE_URL}/api/emotion-diaries`, // 감정 일기 목록 조회
+    CREATE_DIARY: `${BASE_URL}/api/emotion-diaries`, // 감정 일기 생성
+    DIARY: date =>`${BASE_URL}/api/emotion-diaries/${date}`, // 특정 날짜 감정 일기 조회
+    FIX_DIARY: date => `${BASE_URL}/api/emotion-diaries/${date}`, // 특정 날짜 감정 일기 수정
+    DEL_DIARY: date => `${BASE_URL}/api/emotion-diaries/${date}`, // 특정 날짜 감정 일기 삭제  
   },
 
   COMMUNITY: {
@@ -47,7 +55,7 @@ const config = {
     DEL_COMMENT: (postId, commentId) =>
       `${BASE_URL}/api/community/${postId}/comments/${commentId}`,
     COMMENT_LIKE: (postId, commentId) =>
-      `${BASE_URL}/api/community/${postId}/comments/${commentId}`,
+      `${BASE_URL}/api/community/${postId}/comments/${commentId}/like`,
   },
 
   WEEKLY: {
