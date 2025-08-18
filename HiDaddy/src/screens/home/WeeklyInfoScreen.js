@@ -1,11 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import styled from 'styled-components/native';
-import { Dimensions, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import {
-  useNavigation,
-  useFocusEffect,
-  useRoute,
-} from '@react-navigation/native';
+import { Dimensions, ScrollView, Alert } from 'react-native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 
 import colors from '../../constants/colors';
 import Background from '../../components/Background';
@@ -22,7 +18,6 @@ const { width } = Dimensions.get('window');
 const MAX_WEEK = 40;
 
 const WeeklyInfoScreen = () => {
-  const navigation = useNavigation();
   const route = useRoute();
 
   const routeGroupId = route?.params?.groupId ?? null;
@@ -176,7 +171,7 @@ const SectionTitle = styled(HmmBText)`
 
 const SectionText = styled(HmmText)`
   font-size: ${width * 0.038}px;
-  color: ${colors.grayDark};
+  color: ${colors.black};
   line-height: 28px;
   margin-top: ${width * 0.03}px;
 `;

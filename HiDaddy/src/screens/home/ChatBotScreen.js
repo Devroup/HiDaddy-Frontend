@@ -30,7 +30,12 @@ const ChatBotScreen = () => {
       const lastMessage = newMessages[newMessages.length - 1];
 
       if (lastMessage && lastMessage.role === 'bot') {
-        lastMessage.content += newChunk;
+        if (lastMessage.isLoading) {
+          lastMessage.content = newChunk;
+          delete lastMessage.isLoading;
+        } else {
+          lastMessage.content += newChunk;
+        }
       } else {
         newMessages.push({ role: 'bot', content: newChunk });
       }
@@ -87,7 +92,10 @@ const ChatBotScreen = () => {
     setMessage('');
     setIsLoading(true);
 
-    setMessages(prev => [...prev, { role: 'bot', content: '' }]);
+    setMessages(prev => [
+      ...prev,
+      { role: 'bot', content: '. . .', isLoading: true },
+    ]);
 
     if (isWsReady && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(

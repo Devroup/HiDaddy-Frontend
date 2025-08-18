@@ -49,7 +49,6 @@ const MypageScreen = ({ navigation: { navigate } }) => {
 
   const handleLogout = async () => {
     try {
-      // Keychain에서 토큰 꺼내기
       const credentials = await Keychain.getGenericPassword();
 
       if (!credentials) {
