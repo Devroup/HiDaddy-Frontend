@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Dimensions, KeyboardAvoidingView, Alert, TouchableOpacity, FlatList, Image } from 'react-native';
+import { Dimensions, KeyboardAvoidingView, Alert, TouchableOpacity, ScrollView } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
 import colors from '../../constants/colors';
@@ -151,9 +151,7 @@ const CommunityDetailScreen = () => {
   if (loading) {
     return (
       <Wrapper>
-        <Content>
           <HmmText>로딩 중입니다...</HmmText>
-        </Content>
       </Wrapper>
     );
   }
@@ -161,16 +159,14 @@ const CommunityDetailScreen = () => {
   if (!post) {
     return (
       <Wrapper>
-        <Content>
           <HmmText>게시글 정보를 찾을 수 없습니다.</HmmText>
-        </Content>
       </Wrapper>
     );
   }
 
   return (
     <Wrapper>
-      <Content>
+      <ScrollView contentContainerStyle={{ padding: width * 0.08, paddingBottom: 120 }}>
         <CommunityMainProfile>
           <MainProfileLeft>
             <MainProfileIMG
@@ -220,11 +216,10 @@ const CommunityDetailScreen = () => {
           </CommunityMainComment>
         </CommunityMainResponse>
 
-        <FlatList
-          data={comments}
-          keyExtractor={(item) => item.id.toString()}
-          ListEmptyComponent={<CommentsText>댓글이 없습니다.</CommentsText>}
-          renderItem={({ item: c }) => (
+        {comments.length === 0 ? (
+          <CommentsText>댓글이 없습니다.</CommentsText>
+        ) : (
+          comments.map((c) => (
             <CommentItem key={c.id}>
               <UserProfile>
                 <CommentProfileIMG
@@ -254,39 +249,33 @@ const CommunityDetailScreen = () => {
                 </CommentActions>
               </CommentsRow>
             </CommentItem>
-          )}
-          contentContainerStyle={{ paddingBottom: 20, marginTop: width * 0.04 }}
-        />
+          ))
+        )}
+      </ScrollView>
 
-        <KeyboardAvoidingView behavior={undefined} keyboardVerticalOffset={0}>
-          <CommentInputWrapper>
-            <StyledTextInput
-              placeholder="댓글을 입력하세요."
-              placeholderTextColor={colors.gray100}
-              value={commentInput}
-              onChangeText={setCommentInput}
-            />
-            <SendButton onPress={handleSend}>
-              <Send width={28} height={28} />
-            </SendButton>
-          </CommentInputWrapper>
-        </KeyboardAvoidingView>
-      </Content>
+      <KeyboardAvoidingView behavior={undefined} keyboardVerticalOffset={0}>
+        <CommentInputWrapper>
+          <StyledTextInput
+            placeholder="댓글을 입력하세요."
+            placeholderTextColor={colors.gray100}
+            value={commentInput}
+            onChangeText={setCommentInput}
+          />
+          <SendButton onPress={handleSend}>
+            <Send width={28} height={28} />
+          </SendButton>
+        </CommentInputWrapper>
+      </KeyboardAvoidingView>
     </Wrapper>
   );
 };
 
 export default CommunityDetailScreen;
 
-// Styled Components
+
 const Wrapper = styled.View`
   flex: 1;
   background-color: ${colors.white};
-`;
-
-const Content = styled.View`
-  flex: 1;
-  padding: ${width * 0.08}px;
 `;
 
 const CommunityMainProfile = styled.View`
@@ -306,17 +295,11 @@ const MainProfileLeft = styled.View`
 const MainProfileIMG = styled.Image`
   width: 40px;
   height: 40px;
-  border-radius: 20px;
-  border-width: 2px;
-  border-color: ${colors.black};
 `;
 
 const CommentProfileIMG = styled.Image`
   width: 30px;
   height: 30px;
-  border-radius: 15px;
-  border-width: 1px;
-  border-color: ${colors.gray100};
 `;
 
 const MainProfileText = styled.View`
@@ -366,6 +349,7 @@ const CommunityMainResponse = styled.View`
   border-bottom-width: 1px;
   border-bottom-color: ${colors.gray100};
   padding-bottom: ${width * 0.03}px;
+  margin-bottom: ${width * 0.02}px;
 `;
 
 const CommunityMainLike = styled.View`
@@ -393,10 +377,10 @@ const Commentcount = styled.View`
 const CommentText = styled(HmmBText)``;
 
 const CommentItem = styled.View`
-  margin-bottom: ${width * 0.03}px;
+  margin-bottom: ${width * 0.02}px;
   border-bottom-width: 1px;
   border-bottom-color: ${colors.gray100};
-  padding-bottom: ${width * 0.02}px;
+  padding-bottom: ${width * 0.03}px;
 `;
 
 const UserProfile = styled.View`
@@ -425,7 +409,7 @@ const CommentInputWrapper = styled.View`
   align-items: center;
   border-top-width: 1px;
   border-top-color: ${colors.gray100};
-  padding: 8px 12px;
+  padding: 8px 12px 20px;
   background-color: ${colors.white};
 `;
 

@@ -152,7 +152,6 @@ const CommunityScreen = () => {
 
 export default CommunityScreen;
 
-// Styled Components
 const Wrapper = styled.View`
   flex: 1;
 `;
@@ -199,9 +198,6 @@ const CommunityMainProfile = styled.View`
 const MainProfileIMG = styled.Image`
   width: 40px;
   height: 40px;
-  border-radius: 20px;
-  border-width: 2px;
-  border-color: ${colors.black};
 `;
 
 const MainProfileText = styled.View`
