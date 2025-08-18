@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Dimensions, KeyboardAvoidingView, Alert, TouchableOpacity, FlatList } from 'react-native';
+import { Dimensions, KeyboardAvoidingView, Alert, TouchableOpacity, FlatList, Image } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
 import colors from '../../constants/colors';
 import Dot from '../../assets/imgs/icons/dots.svg';
-import Profile from '../../assets/imgs/icons/myprofile.svg';
 import EmptyHeartlike from '../../assets/imgs/icons/heart_red_empty.svg';
 import CommentIcon from '../../assets/imgs/icons/comment.svg';
 import Heartlike from '../../assets/imgs/icons/heart_red.svg';
@@ -174,9 +173,13 @@ const CommunityDetailScreen = () => {
       <Content>
         <CommunityMainProfile>
           <MainProfileLeft>
-            <MainProfileIMG>
-              <Profile width={30} height={30} />
-            </MainProfileIMG>
+            <MainProfileIMG
+              source={
+                post.authorProfileImageUrl
+                  ? { uri: post.authorProfileImageUrl }
+                  : require('../../assets/imgs/icons/myprofile.svg')
+              }
+            />
             <MainProfileText>
               <ProfileId>
                 <Id>
@@ -224,7 +227,13 @@ const CommunityDetailScreen = () => {
           renderItem={({ item: c }) => (
             <CommentItem key={c.id}>
               <UserProfile>
-                <Profile width={20} height={20} />
+                <CommentProfileIMG
+                  source={
+                    c.authorProfileImageUrl
+                      ? { uri: c.authorProfileImageUrl }
+                      : require('../../assets/imgs/icons/myprofile.svg')
+                  }
+                />
                 <Id>
                   <IdText>{c.authorName}</IdText>
                 </Id>
@@ -269,6 +278,7 @@ const CommunityDetailScreen = () => {
 
 export default CommunityDetailScreen;
 
+// Styled Components
 const Wrapper = styled.View`
   flex: 1;
   background-color: ${colors.white};
@@ -293,9 +303,20 @@ const MainProfileLeft = styled.View`
   align-items: center;
 `;
 
-const MainProfileIMG = styled.View`
-  border-radius: 100px;
-  border: 2px solid ${colors.black};
+const MainProfileIMG = styled.Image`
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  border-width: 2px;
+  border-color: ${colors.black};
+`;
+
+const CommentProfileIMG = styled.Image`
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  border-width: 1px;
+  border-color: ${colors.gray100};
 `;
 
 const MainProfileText = styled.View`
@@ -396,7 +417,7 @@ const CommentActions = styled.View`
   flex-direction: row;
   align-items: center;
 `;
-const Comments = styled.View``;
+
 const CommentsText = styled(HmmText)``;
 
 const CommentInputWrapper = styled.View`

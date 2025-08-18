@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import styled from 'styled-components/native';
 import { Dimensions, FlatList, ActivityIndicator } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -11,7 +11,6 @@ import config from '../../constants/config';
 import { HmmText, HmmBText } from '../../components/CustomText';
 
 import Write from '../../assets/imgs/icons/write.svg';
-import Profile from '../../assets/imgs/icons/myprofile.svg';
 import EmptyHeartlike from '../../assets/imgs/icons/heart_red_empty.svg';
 import Comment from '../../assets/imgs/icons/comment.svg';
 import Heartlike from '../../assets/imgs/icons/heart_red.svg';
@@ -53,7 +52,6 @@ const CommunityScreen = () => {
     return `${year}.${month}.${day} ${hours}:${minutes}`;
   };
 
-
   const renderItem = ({ item }) => (
     <PostWrapper
       onPress={() =>
@@ -64,9 +62,13 @@ const CommunityScreen = () => {
       }
     >
       <CommunityMainProfile>
-        <MainProfileIMG>
-          <Profile width={30} height={30} />
-        </MainProfileIMG>
+        <MainProfileIMG
+          source={
+            item.authorProfileImageUrl
+              ? { uri: item.authorProfileImageUrl }
+              : require('../../assets/imgs/icons/myprofile.svg')
+          }
+        />
         <MainProfileText>
           <ProfileId>
             <Id>
@@ -81,6 +83,10 @@ const CommunityScreen = () => {
 
       <CommunityMainContent>
         <ContentText numberOfLines={3}>{item.content}</ContentText>
+
+        {item.imageUrl ? (
+          <PostImage source={{ uri: item.imageUrl }} resizeMode="cover" />
+        ) : null}
       </CommunityMainContent>
 
       <CommunityMainResponse>
@@ -146,6 +152,7 @@ const CommunityScreen = () => {
 
 export default CommunityScreen;
 
+// Styled Components
 const Wrapper = styled.View`
   flex: 1;
 `;
@@ -189,9 +196,12 @@ const CommunityMainProfile = styled.View`
   align-items: center;
 `;
 
-const MainProfileIMG = styled.View`
-  border-radius: 100px;
-  border: 2px solid ${colors.black};
+const MainProfileIMG = styled.Image`
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  border-width: 2px;
+  border-color: ${colors.black};
 `;
 
 const MainProfileText = styled.View`
@@ -223,6 +233,13 @@ const CommunityMainContent = styled.View`
 `;
 
 const ContentText = styled(HmmText)``;
+
+const PostImage = styled.Image`
+  width: 100%;
+  height: ${width * 0.5}px;
+  border-radius: 10px;
+  margin-top: 10px;
+`;
 
 const CommunityMainResponse = styled.View`
   margin-top: 17px;
