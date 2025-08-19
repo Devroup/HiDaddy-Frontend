@@ -15,92 +15,92 @@ import { launchImageLibrary } from 'react-native-image-picker';
 const { width } = Dimensions.get('window');
 
 const DiaryWriteScreen = () => {
-  const navigation = useNavigation();
-  const [isEditing, setIsEditing] = useState(true);
-  const [diaryText, setDiaryText] = useState('');
-  const [messageText, setMessageText] = useState(''); // 메시지 필드는 FormData에 포함 안 함 (API에 없으므로)
-  const [imageUri, setImageUri] = useState(null);
+    const navigation = useNavigation();
+    const [isEditing, setIsEditing] = useState(true);
+    const [diaryText, setDiaryText] = useState('');
+    const [messageText, setMessageText] = useState(''); // 메시지 필드는 FormData에 포함 안 함 (API에 없으므로)
+    const [imageUri, setImageUri] = useState(null);
 
-  const getFormattedDate = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth() + 1;
-    const day = today.getDate();
-    return `${year}년 ${month}월 ${day}일`;
-  };
-
-  const handleSelectImage = () => {
-    launchImageLibrary(
-      { mediaType: 'photo', quality: 0.8 },
-      (response) => {
-        if (response.didCancel) return;
-        if (response.errorCode) {
-          Alert.alert('이미지 선택 오류', response.errorMessage);
-          return;
+    const getFormattedDate = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth() + 1;
+        const day = today.getDate();
+        return `${year}년 ${month}월 ${day}일`;
+    };
+ 
+    const handleSelectImage = () => {
+        launchImageLibrary(
+        { mediaType: 'photo', quality: 0.8 },
+        (response) => {
+            if (response.didCancel) return;
+            if (response.errorCode) {
+            Alert.alert('이미지 선택 오류', response.errorMessage);
+            return;
+            }
+            if (response.assets && response.assets.length > 0) {
+            setImageUri(response.assets[0].uri);
+            console.log('선택한 이미지 URI:', response.assets[0].uri);
+            }
         }
-        if (response.assets && response.assets.length > 0) {
-          setImageUri(response.assets[0].uri);
-          console.log('선택한 이미지 URI:', response.assets[0].uri);
-        }
-      }
-    );
-  };
+        );
+    };
 
-  const handleCreateDiary = async () => {
-    if (!diaryText) {
-      Alert.alert('작성 내용이 없습니다', '일기를 작성해주세요.');
-      return;
-    }
+    const handleCreateDiary = async () => {
+        if (!diaryText) {
+            Alert.alert('작성 내용이 없습니다', '일기를 작성해주세요.');
+            return;
+        }
 
     try {
-      const formData = new FormData();
-      formData.append('content', diaryText);
-      formData.append('date', new Date().toISOString().split('T')[0]);
+        const formData = new FormData();
+        formData.append('content', diaryText);
+        formData.append('date', new Date().toISOString().split('T')[0]);
 
-      if (imageUri) {
-        formData.append('image', {
-          uri: imageUri,
-          type: 'image/jpeg',
-          name: 'photo.jpg',
-        });
-      }
-
-      const response = await post(config.DIARY.CREATE_DIARY, formData);
-      console.log('일기 생성 성공:', response.data);
-      setIsEditing(false);
-      Alert.alert('완료', '일기가 저장되었습니다.');
-    } catch (error) {
-      console.error('일기 생성 실패:', error);
-      if (error.response) console.error('서버 응답 데이터:', error.response.data);
-      else if (error.request) console.error('요청은 전송됐으나 응답 없음:', error.request);
-      else console.error('요청 설정 오류:', error.message);
-      Alert.alert('오류', '일기 생성에 실패했습니다.');
-    }
-  };
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => {
-        if (isEditing) {
-          return <CustomButton title="완료" onPress={handleCreateDiary} />;
-        } else {
-          return (
-            <View style={{ flexDirection: 'row' }}>
-              <CustomButton
-                title="삭제"
-                variant="delete"
-                backgroundColor={colors.red}
-                colors="red"
-                onPress={() => navigation.goBack()}
-                style={{ marginRight: 12 }}
-              />
-              <CustomButton title="수정" variant="edit" onPress={() => setIsEditing(true)} />
-            </View>
-          );
+        if (imageUri) {
+            formData.append('image', {
+                uri: imageUri,
+                type: 'image/jpeg',
+                name: 'photo.jpg',
+            });
         }
-      },
-    });
-  }, [navigation, isEditing, diaryText, imageUri]);
+
+        const response = await post(config.DIARY.CREATE_DIARY, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        console.log('일기 생성 성공:', response.data);
+        setIsEditing(false);
+        Alert.alert('완료', '일기가 저장되었습니다.');
+    } catch (error) {
+        console.error('일기 생성 실패:', error);
+        if (error.response) console.error('서버 응답 데이터:', error.response.data);
+        }
+    };
+
+    useLayoutEffect(() => {
+        navigation.setOptions({
+        headerRight: () => {
+            if (isEditing) {
+            return <CustomButton title="완료" onPress={handleCreateDiary} />;
+            } else {
+            return (
+                <View style={{ flexDirection: 'row' }}>
+                <CustomButton
+                    title="삭제"
+                    variant="delete"
+                    backgroundColor={colors.red}
+                    colors="red"
+                    onPress={() => navigation.goBack()}
+                    style={{ marginRight: 12 }}
+                />
+                <CustomButton title="수정" variant="edit" onPress={() => setIsEditing(true)} />
+                </View>
+            );
+            }
+        },
+        });
+    }, [navigation, isEditing, diaryText, imageUri]);
 
   return (
     <Wrapper>
