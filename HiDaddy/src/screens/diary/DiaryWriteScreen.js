@@ -90,6 +90,16 @@ const DiaryWriteScreen = () => {
     }
   };
 
+  const sendMessage = async () => {
+    try {
+        await post(config.MESSAGE.SEND_MESSAGE, { content: messageText });
+        Alert.alert('완료', '메시지가 전송되었습니다.');
+    } catch (error) {
+      console.error('메시지 전송 실패:', error);
+      Alert.alert('전송 실패', '메시지 전송 중 오류가 발생했습니다.');
+    }
+  };
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => {
@@ -156,7 +166,9 @@ const DiaryWriteScreen = () => {
                 multiline
                 textAlignVertical="top"
               />
-              <Send width={30} height={30} />
+              <TouchableOpacity onPress={sendMessage}>
+                <Send width={30} height={30} />
+              </TouchableOpacity>
             </MessageContent>
           </DiaryMessage>
 
