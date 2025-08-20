@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components/native';
 import colors from '../../constants/colors';
+import dayjs from 'dayjs';
 import { get } from '../../services/api';
 import config from '../../constants/config';
 
@@ -18,31 +19,47 @@ const DiaryScreen = () => {
   const navigation = useNavigation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [diaryList, setDiaryList] = useState([]);
+  const [selectedDiary, setSelectedDiary] = useState(null);
+
+  const startDate = dayjs().startOf('month').format('YYYY-MM-DD');
+  const endDate = dayjs().endOf('month').format('YYYY-MM-DD');
 
   const fetchDiaryList = async () => {
     try {
-      const response = await get(config.DIARY.DIARY);
-      // response.data가 배열인지 확인 후 set
-      if (Array.isArray(response.data)) {
-        setDiaryList(response.data);
-      } else {
-        console.warn('API 응답 형식이 예상과 다릅니다:', response.data);
-      }
+      console.log('요청 URL:', config.DIARY.GET_DIARY, startDate, endDate);
+      const response = await get(config.DIARY.GET_DIARY, {
+        startDate,
+        endDate,
+      });
+
+      console.log('응답 구조:', response);
+
+      const rawData = response.data ?? response;
+
+      const dataArr = Object.values(rawData).filter(
+        item => typeof item === 'object' && item.date,
+      );
+
+      setDiaryList(dataArr);
+      console.log('변환된 배열:', dataArr);
     } catch (error) {
       console.error('일기 목록 가져오기 실패:', error);
+    }
+  };
+
+  const fetchDiaryByDate = async date => {
+    try {
+      const response = await get(config.DIARY.DIARY(date));
+      console.log('Res', response);
+      setSelectedDiary(response);
+    } catch (error) {
+      console.error('개별 일기 가져오기 실패:', error);
     }
   };
 
   useEffect(() => {
     fetchDiaryList();
   }, []);
-
-  const renderDiaryItem = ({ item }) => (
-    <DiaryItem>
-      {item.imageUrl ? <DiaryImage source={{ uri: item.imageUrl }} /> : null}
-      <DiaryText>{item.text}</DiaryText>
-    </DiaryItem>
-  );
 
   return (
     <Wrapper>
@@ -67,20 +84,30 @@ const DiaryScreen = () => {
         </DiaryMain>
 
         <CalendarWrapper>
-          <CustomCalendar currentDate={currentDate} setCurrentDate={setCurrentDate} />
+          <CustomCalendar
+            currentDate={currentDate}
+            setCurrentDate={setCurrentDate}
+            diaryDates={diaryList.map(item => item.date)}
+            onSelectDate={date => fetchDiaryByDate(date)}
+          />
         </CalendarWrapper>
 
         <DiaryPost>
-          <DiaryPostTitle>최근 작성한 일기</DiaryPostTitle>
-          {diaryList.length > 0 ? (
-            <FlatList
-              data={diaryList}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={renderDiaryItem}
-              contentContainerStyle={{ paddingVertical: 10 }}
-            />
+          <DiaryPostTitle>
+            {selectedDiary
+              ? `${selectedDiary.date}의 일기`
+              : '날짜를 선택해주세요'}
+          </DiaryPostTitle>
+
+          {selectedDiary && selectedDiary.content ? (
+            <DiaryItem>
+              {selectedDiary.imageUrl ? (
+                <DiaryImage source={{ uri: selectedDiary.imageUrl }} />
+              ) : null}
+              <DiaryText>{selectedDiary.content}</DiaryText>
+            </DiaryItem>
           ) : (
-            <EmptyText>일기 내용이 없습니다.</EmptyText>
+            <EmptyText>일기를 확인할 날짜를 선택하세요.</EmptyText>
           )}
         </DiaryPost>
       </Content>
@@ -91,7 +118,9 @@ const DiaryScreen = () => {
 export default DiaryScreen;
 
 // Styled Components
-const Wrapper = styled.View`flex: 1;`;
+const Wrapper = styled.View`
+  flex: 1;
+`;
 const Content = styled.View`
   margin-top: 30px;
   padding: ${width * 0.1}px;
