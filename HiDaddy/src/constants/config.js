@@ -41,6 +41,10 @@ const config = {
     DEL_DIARY: date => `${BASE_URL}/api/emotion-diaries/${date}`, // 특정 날짜 감정 일기 삭제  
   },
 
+  MESSAGE: {
+    SEND_MESSAGE: `${BASE_URL}/api/message`, // 메시지 전송
+  },
+
   COMMUNITY: {
     CREATE_POST: `${BASE_URL}/api/community`, // 게시글 작성
     GET_POST: `${BASE_URL}/api/community`,
