@@ -4,6 +4,7 @@ import styled from 'styled-components/native';
 
 import LeftArrow from '../../assets/imgs/icons/left_arrow.svg';
 import RightArrow from '../../assets/imgs/icons/right_arrow.svg';
+import HeartYellow from '../../assets/imgs/icons/heart_yellow.svg';
 
 import { Dimensions } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
@@ -13,17 +14,40 @@ const { width } = Dimensions.get('window');
 
 LocaleConfig.locales['kr'] = {
   monthNames: [
-    '1월','2월','3월','4월','5월','6월',
-    '7월','8월','9월','10월','11월','12월'
+    '1월',
+    '2월',
+    '3월',
+    '4월',
+    '5월',
+    '6월',
+    '7월',
+    '8월',
+    '9월',
+    '10월',
+    '11월',
+    '12월',
   ],
-  dayNames: ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'],
-  dayNamesShort: ['일','월','화','수','목','금','토'],
-  today: '오늘'
+  dayNames: [
+    '일요일',
+    '월요일',
+    '화요일',
+    '수요일',
+    '목요일',
+    '금요일',
+    '토요일',
+  ],
+  dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
+  today: '오늘',
 };
 
 LocaleConfig.defaultLocale = 'kr';
 
-const CustomCalendar = ({ currentDate, setCurrentDate, diaryDates = [] }) => {
+const CustomCalendar = ({
+  currentDate,
+  setCurrentDate,
+  diaryDates = [],
+  onSelectDate,
+}) => {
   const markedDates = diaryDates.reduce((acc, dateStr) => {
     acc[dateStr] = { marked: true, dotColor: colors.primary };
     return acc;
@@ -36,7 +60,7 @@ const CustomCalendar = ({ currentDate, setCurrentDate, diaryDates = [] }) => {
     selectedColor: colors.primary,
   };
 
-  const changeMonth = (direction) => {
+  const changeMonth = direction => {
     const newDate = new Date(currentDate);
     newDate.setMonth(currentDate.getMonth() + (direction === 'left' ? -1 : 1));
     setCurrentDate(newDate);
@@ -47,8 +71,14 @@ const CustomCalendar = ({ currentDate, setCurrentDate, diaryDates = [] }) => {
       <Calendar
         key={currentDate.toISOString()}
         current={currentDate.toISOString().split('T')[0]}
-        onMonthChange={(month) => setCurrentDate(new Date(month.dateString))}
-        onDayPress={(day) => setCurrentDate(new Date(day.dateString))}
+        onMonthChange={month => setCurrentDate(new Date(month.dateString))}
+        onDayPress={day => {
+          const newDate = new Date(day.dateString);
+          setCurrentDate(newDate);
+          if (onSelectDate) {
+            onSelectDate(day.dateString);
+          }
+        }}
         markedDates={markedDates}
         firstDay={0}
         monthFormat={'yyyy년 MM월'}
@@ -93,10 +123,27 @@ const CustomCalendar = ({ currentDate, setCurrentDate, diaryDates = [] }) => {
               ? 'blue'
               : colors.black;
 
+          const hasDiary = diaryDates.includes(date.dateString);
+
           return (
-            <HmmText style={{ color: textColor, textAlign: 'center' }}>
-              {date.day}
-            </HmmText>
+            <DayTouchable
+              onPress={() => {
+                const newDate = new Date(date.dateString);
+                setCurrentDate(newDate);
+                if (onSelectDate) {
+                  onSelectDate(date.dateString);
+                }
+              }}
+            >
+              <HmmText style={{ color: textColor, textAlign: 'center' }}>
+                {date.day}
+              </HmmText>
+              {hasDiary && (
+                <HeartWrapper>
+                  <HeartYellow width={10} height={10} />
+                </HeartWrapper>
+              )}
+            </DayTouchable>
           );
         }}
       />
@@ -130,3 +177,14 @@ const HeaderIcons = styled.View`
 `;
 
 const ArrowButton = styled.TouchableOpacity``;
+
+const HeartWrapper = styled.View`
+  position: absolute;
+  bottom: 18px;
+`;
+
+const DayTouchable = styled.TouchableOpacity`
+  align-items: center;
+  justify-content: center;
+  position: relative;
+`;
