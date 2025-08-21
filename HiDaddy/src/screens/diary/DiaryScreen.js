@@ -86,9 +86,16 @@ const DiaryScreen = () => {
         <CalendarWrapper>
           <CustomCalendar
             currentDate={currentDate}
-            setCurrentDate={setCurrentDate}
+            setCurrentDate={date => {
+              setCurrentDate(date);
+              setSelectedDiary(null);
+              fetchDiaryByDate(dayjs(date).format('YYYY-MM-DD'));
+            }}
             diaryDates={diaryList.map(item => item.date)}
-            onSelectDate={date => fetchDiaryByDate(date)}
+            onSelectDate={date => {
+              setSelectedDiary(null);
+              fetchDiaryByDate(dayjs(date).format('YYYY-MM-DD'));
+            }}
           />
         </CalendarWrapper>
 
