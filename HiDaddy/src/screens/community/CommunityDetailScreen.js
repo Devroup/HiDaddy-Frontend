@@ -27,6 +27,16 @@ const CommunityDetailScreen = () => {
   const [commentInput, setCommentInput] = useState('');
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await get(config.USER.ME);
+      setCurrentUser(response);
+    } catch (err) {
+      console.log('유저 정보 불러오기 실패:', err);
+    }
+  };
 
   const fetchPostDetail = async () => {
     try {
@@ -92,7 +102,6 @@ const CommunityDetailScreen = () => {
       console.log('게시글 삭제 실패:', err);
     }
   };
-
   const openMenu = () => {
     Alert.alert('메뉴', '', [
       { text: '수정', onPress: handleEditPost },
@@ -115,12 +124,10 @@ const CommunityDetailScreen = () => {
       { text: '취소', style: 'cancel' },
     ]);
   };
-
   const handleEditComment = (comment) => {
     setCommentInput(comment.content);
     setEditingCommentId(comment.id);
   };
-
   const handleDeleteComment = async (comment) => {
     try {
       await del(config.COMMUNITY.DEL_COMMENT(postId, comment.id));
@@ -141,28 +148,12 @@ const CommunityDetailScreen = () => {
   };
 
   useEffect(() => {
-    if (postId) {
-      Promise.all([fetchPostDetail(), fetchComments()]).finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    Promise.all([fetchCurrentUser(), fetchPostDetail(), fetchComments()])
+      .finally(() => setLoading(false));
   }, [postId]);
 
-  if (loading) {
-    return (
-      <Wrapper>
-          <HmmText>로딩 중입니다...</HmmText>
-      </Wrapper>
-    );
-  }
-
-  if (!post) {
-    return (
-      <Wrapper>
-          <HmmText>게시글 정보를 찾을 수 없습니다.</HmmText>
-      </Wrapper>
-    );
-  }
+  if (loading) return (<Wrapper><HmmText>로딩 중입니다...</HmmText></Wrapper>);
+  if (!post) return (<Wrapper><HmmText>게시글 정보를 찾을 수 없습니다.</HmmText></Wrapper>);
 
   return (
     <Wrapper>
@@ -178,20 +169,19 @@ const CommunityDetailScreen = () => {
             />
             <MainProfileText>
               <ProfileId>
-                <Id>
-                  <IdText>{post.authorName}</IdText>
-                </Id>
-                <Time>
-                  <TimeText>{formatDateTime(post.createdAt)}</TimeText>
-                </Time>
+                <Id><IdText>{post.authorName}</IdText></Id>
+                <Time><TimeText>{formatDateTime(post.createdAt)}</TimeText></Time>
               </ProfileId>
             </MainProfileText>
           </MainProfileLeft>
-          <MainProfileFix>
-            <TouchableOpacity onPress={openMenu}>
-              <Dot width={24} height={24} />
-            </TouchableOpacity>
-          </MainProfileFix>
+
+          {currentUser && post.authorId === currentUser.userId && (
+            <MainProfileFix>
+              <TouchableOpacity onPress={openMenu}>
+                <Dot width={24} height={24} />
+              </TouchableOpacity>
+            </MainProfileFix>
+          )}
         </CommunityMainProfile>
 
         <CommunityMainContent>
@@ -204,15 +194,11 @@ const CommunityDetailScreen = () => {
             <TouchableOpacity onPress={handleToggleLike}>
               {post?.liked ? <Heartlike width={24} height={24} /> : <EmptyHeartlike width={24} height={24} />}
             </TouchableOpacity>
-            <Heartlikecount>
-              <CountText>{post.likeCount || 0}</CountText>
-            </Heartlikecount>
+            <Heartlikecount><CountText>{post.likeCount || 0}</CountText></Heartlikecount>
           </CommunityMainLike>
           <CommunityMainComment>
             <CommentIcon width={24} height={24} />
-            <Commentcount>
-              <CommentText>{comments.length}</CommentText>
-            </Commentcount>
+            <Commentcount><CommentText>{comments.length}</CommentText></Commentcount>
           </CommunityMainComment>
         </CommunityMainResponse>
 
@@ -229,12 +215,8 @@ const CommunityDetailScreen = () => {
                       : require('../../assets/imgs/icons/myprofile.svg')
                   }
                 />
-                <Id>
-                  <IdText>{c.authorName}</IdText>
-                </Id>
-                <Time>
-                  <TimeText>{formatDateTime(c.createdAt)}</TimeText>
-                </Time>
+                <Id><IdText>{c.authorName}</IdText></Id>
+                <Time><TimeText>{formatDateTime(c.createdAt)}</TimeText></Time>
               </UserProfile>
 
               <CommentsRow>
@@ -243,9 +225,11 @@ const CommunityDetailScreen = () => {
                   <TouchableOpacity style={{ marginRight: 8 }}>
                     <EmptyHeartlike width={20} height={20} />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleCommentMenu(c)}>
-                    <Dot width={20} height={20} />
-                  </TouchableOpacity>
+                  {currentUser && c.authorId === currentUser.userId && (
+                    <TouchableOpacity onPress={() => handleCommentMenu(c)}>
+                      <Dot width={20} height={20} />
+                    </TouchableOpacity>
+                  )}
                 </CommentActions>
               </CommentsRow>
             </CommentItem>
@@ -271,7 +255,6 @@ const CommunityDetailScreen = () => {
 };
 
 export default CommunityDetailScreen;
-
 
 const Wrapper = styled.View`
   flex: 1;
