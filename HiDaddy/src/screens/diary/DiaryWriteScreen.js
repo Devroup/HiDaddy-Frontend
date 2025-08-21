@@ -1,7 +1,7 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useLayoutEffect, useState, useEffect } from 'react';
 import styled from 'styled-components/native';
 import colors from '../../constants/colors';
-import { post, del } from '../../services/api';
+import { post, del, get, put } from '../../services/api';
 import config from '../../constants/config';
 
 import Send from '../../assets/imgs/icons/send.svg';
@@ -18,8 +18,10 @@ const DiaryWriteScreen = () => {
   const navigation = useNavigation();
   const [isEditing, setIsEditing] = useState(true);
   const [diaryText, setDiaryText] = useState('');
-  const [messageText, setMessageText] = useState(''); // 메시지 필드는 FormData에 포함 안 함 (API에 없으므로)
+  const [messageText, setMessageText] = useState('');
   const [imageUri, setImageUri] = useState(null);
+
+  const diaryDate = new Date().toISOString().split('T')[0];
 
   const getFormattedDate = () => {
     const today = new Date();
@@ -28,6 +30,24 @@ const DiaryWriteScreen = () => {
     const day = today.getDate();
     return `${year}년 ${month}월 ${day}일`;
   };
+
+  // 서버에서 일기 불러오기
+  useEffect(() => {
+    const fetchDiary = async () => {
+      try {
+        const response = await get(config.DIARY.DIARY(diaryDate));
+        if (response) {
+          setDiaryText(response.content || '');
+          setMessageText(response.message || '');
+          if (response.imageUrl) setImageUri(response.imageUrl);
+          setIsEditing(false); // 이미 작성된 경우 읽기 모드
+        }
+      } catch (error) {
+        console.log('일기 불러오기 실패:', error);
+      }
+    };
+    fetchDiary();
+  }, [diaryDate]);
 
   const handleSelectImage = () => {
     launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, response => {
@@ -52,7 +72,8 @@ const DiaryWriteScreen = () => {
     try {
       const formData = new FormData();
       formData.append('content', diaryText);
-      formData.append('date', new Date().toISOString().split('T')[0]);
+      formData.append('message', messageText);
+      formData.append('date', diaryDate);
 
       if (imageUri) {
         formData.append('image', {
@@ -71,17 +92,13 @@ const DiaryWriteScreen = () => {
       Alert.alert('완료', '일기가 저장되었습니다.');
     } catch (error) {
       console.error('일기 생성 실패:', error);
-      if (error.response)
-        console.error('서버 응답 데이터:', error.response.data);
+      if (error.response) console.error('서버 응답 데이터:', error.response.data);
     }
   };
-
-  const diaryDate = new Date().toISOString().split('T')[0];
 
   const handleDeleteDiary = async () => {
     try {
       await del(config.DIARY.DEL_DIARY(diaryDate));
-
       Alert.alert('삭제 완료', '일기가 삭제되었습니다.');
       navigation.goBack();
     } catch (error) {
@@ -90,10 +107,36 @@ const DiaryWriteScreen = () => {
     }
   };
 
+  const handleEditDiary = async () => {
+    try {
+      const formData = new FormData();
+      formData.append('content', diaryText);
+      formData.append('message', messageText);
+
+      if (imageUri) {
+        formData.append('image', {
+          uri: imageUri,
+          type: 'image/jpeg',
+          name: 'photo.jpg',
+        });
+      }
+
+      await put(config.DIARY.FIX_DIARY(diaryDate), formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      Alert.alert('완료', '일기가 수정되었습니다.');
+      setIsEditing(false);
+    } catch (error) {
+      console.log('일기 수정 실패:', error);
+      Alert.alert('수정 실패', '일기 수정 중 오류가 발생했습니다.');
+    }
+  };
+
   const sendMessage = async () => {
     try {
-        await post(config.MESSAGE.SEND_MESSAGE, { content: messageText });
-        Alert.alert('완료', '메시지가 전송되었습니다.');
+      await post(config.MESSAGE.SEND_MESSAGE, { content: messageText });
+      Alert.alert('완료', '메시지가 전송되었습니다.');
     } catch (error) {
       console.error('메시지 전송 실패:', error);
       Alert.alert('전송 실패', '메시지 전송 중 오류가 발생했습니다.');
@@ -126,7 +169,7 @@ const DiaryWriteScreen = () => {
         }
       },
     });
-  }, [navigation, isEditing, diaryText, imageUri]);
+  }, [navigation, isEditing, diaryText, imageUri, messageText]);
 
   return (
     <Wrapper>

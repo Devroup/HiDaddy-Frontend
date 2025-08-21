@@ -10,7 +10,7 @@ import RightArrow from '../../../assets/imgs/icons/right_arrow.svg';
 import HeartYellow from '../../../assets/imgs/icons/heart_yellow.svg';
 import { HmmText, HmmBText } from '../../../components/CustomText';
 
-import { post } from '../../../services/api';
+import { post, get } from '../../../services/api';
 import config from '../../../constants/config';
 
 const { width } = Dimensions.get('window');
@@ -18,6 +18,7 @@ const { width } = Dimensions.get('window');
 const MissionScreen = () => {
     const navigation = useNavigation();
     const [missionTitle, setMissionTitle] = useState('');
+    const [DoneMission, setDoneMission] = useState('');
 
     const fetchMission = async () => {
         try {
@@ -30,8 +31,20 @@ const MissionScreen = () => {
         }
     };
 
+    const GetMission = async () => {
+        try {
+            const res = await get(config.MISSION.GET_MISSION);
+            console.log('API 응답:', res);
+            setDoneMission(res.missionTitle || '수행한 미션이 없습니다.');
+        } catch (error) {
+            console.error('미션 조회 실패:', error);
+            setDoneMission('오늘의 마음 전하기');
+        }
+    }
+
     useEffect(() => {
         fetchMission();
+        GetMission();
     }, []);
 
     return(
@@ -71,7 +84,7 @@ const MissionScreen = () => {
                         }
                     >
                         <DoneListRow>
-                            <DoneListText>어쩌구 저쩌구 하기</DoneListText>
+                            <DoneListText>{DoneMission}</DoneListText>
                             <RightArrow width={20} height={20}/>
                         </DoneListRow>
                     </TouchableRow>

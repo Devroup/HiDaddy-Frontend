@@ -99,7 +99,6 @@ const CustomCalendar = ({
           </CCHeader>
         )}
         style={{
-          height: 650,
           paddingTop: 10,
         }}
         theme={{

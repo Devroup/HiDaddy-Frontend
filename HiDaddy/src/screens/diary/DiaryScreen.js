@@ -10,7 +10,7 @@ import CustomCalendar from './CustomCalendar.js';
 
 import Background from '../../components/Background';
 import { HmmBText, HmmText } from '../../components/CustomText';
-import { Dimensions, FlatList, Image } from 'react-native';
+import { Dimensions, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
@@ -93,22 +93,28 @@ const DiaryScreen = () => {
         </CalendarWrapper>
 
         <DiaryPost>
-          <DiaryPostTitle>
-            {selectedDiary
-              ? `${selectedDiary.date}의 일기`
-              : '날짜를 선택해주세요'}
-          </DiaryPostTitle>
-
-          {selectedDiary && selectedDiary.content ? (
-            <DiaryItem>
-              {selectedDiary.imageUrl ? (
-                <DiaryImage source={{ uri: selectedDiary.imageUrl }} />
-              ) : null}
-              <DiaryText>{selectedDiary.content}</DiaryText>
-            </DiaryItem>
-          ) : (
-            <EmptyText>일기를 확인할 날짜를 선택하세요.</EmptyText>
-          )}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 30 }}
+          >
+            {selectedDiary && selectedDiary.content ? (
+              <TouchableDiaryItem
+                onPress={() =>
+                  navigation.navigate('DiaryStackNavigator', {
+                    screen: 'DiaryWriteScreen',
+                    params: { diary: selectedDiary }, // 선택된 일기 전달
+                  })
+                }
+              >
+                {selectedDiary.imageUrl ? (
+                  <DiaryImage source={{ uri: selectedDiary.imageUrl }} />
+                ) : null}
+                <DiaryText>{selectedDiary.content}</DiaryText>
+              </TouchableDiaryItem>
+            ) : (
+              <EmptyText>일기를 확인할 날짜를 선택하세요.</EmptyText>
+            )}
+          </ScrollView>
         </DiaryPost>
       </Content>
     </Wrapper>
@@ -117,11 +123,11 @@ const DiaryScreen = () => {
 
 export default DiaryScreen;
 
-// Styled Components
 const Wrapper = styled.View`
   flex: 1;
 `;
 const Content = styled.View`
+  flex: 1;
   margin-top: 30px;
   padding: ${width * 0.1}px;
 `;
@@ -147,16 +153,11 @@ const CalendarWrapper = styled.View`
   overflow: hidden;
 `;
 const DiaryPost = styled.View`
-  margin-top: ${width * 0.05}px;
+  flex: 1;
+  margin-top: ${width * 0.04}px;
 `;
-const DiaryPostTitle = styled(HmmBText)`
-  font-size: ${width * 0.04}px;
-  color: ${colors.black};
-  margin-bottom: 10px;
-`;
-const DiaryItem = styled.View`
+const TouchableDiaryItem = styled(TouchableOpacity)`
   margin-bottom: 15px;
-  background-color: #f9f9f9;
   padding: 10px;
   border-radius: 10px;
 `;
@@ -172,5 +173,4 @@ const DiaryImage = styled(Image)`
 `;
 const EmptyText = styled(HmmText)`
   font-size: ${width * 0.04}px;
-  color: ${colors.gray};
 `;
