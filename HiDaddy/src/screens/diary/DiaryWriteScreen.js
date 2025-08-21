@@ -1,14 +1,14 @@
 import React, { useLayoutEffect, useState, useEffect } from 'react';
 import styled from 'styled-components/native';
 import colors from '../../constants/colors';
-import { post, del, get, put } from '../../services/api';
+import { post, del, put } from '../../services/api';
 import config from '../../constants/config';
 
 import Send from '../../assets/imgs/icons/send.svg';
 import Gallery from '../../assets/imgs/icons/addimg.svg';
 import { HmmBText, HmmText } from '../../components/CustomText';
-import { useNavigation } from '@react-navigation/native';
-import { Dimensions, View, Alert, TouchableOpacity, Image } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { Dimensions, View, Alert, TouchableOpacity } from 'react-native';
 import CustomButton from '../../components/CustomButton';
 import { launchImageLibrary } from 'react-native-image-picker';
 
@@ -16,38 +16,24 @@ const { width } = Dimensions.get('window');
 
 const DiaryWriteScreen = () => {
   const navigation = useNavigation();
-  const [isEditing, setIsEditing] = useState(true);
-  const [diaryText, setDiaryText] = useState('');
-  const [messageText, setMessageText] = useState('');
-  const [imageUri, setImageUri] = useState(null);
+  const route = useRoute();
 
-  const diaryDate = new Date().toISOString().split('T')[0];
+  const { diary, date } = route.params || {};
+  const diaryDate = diary?.date || date || new Date().toISOString().split('T')[0];
+
+  const [isEditing, setIsEditing] = useState(!diary);
+  const [diaryText, setDiaryText] = useState(diary?.content || '');
+  const [messageText, setMessageText] = useState(diary?.message || '');
+  const [imageUri, setImageUri] = useState(diary?.imageUrl || null);
+  const [hasDiary, setHasDiary] = useState(!!diary);
 
   const getFormattedDate = () => {
-    const today = new Date();
+    const today = new Date(diaryDate);
     const year = today.getFullYear();
     const month = today.getMonth() + 1;
     const day = today.getDate();
     return `${year}년 ${month}월 ${day}일`;
   };
-
-  // 서버에서 일기 불러오기
-  useEffect(() => {
-    const fetchDiary = async () => {
-      try {
-        const response = await get(config.DIARY.DIARY(diaryDate));
-        if (response) {
-          setDiaryText(response.content || '');
-          setMessageText(response.message || '');
-          if (response.imageUrl) setImageUri(response.imageUrl);
-          setIsEditing(false); // 이미 작성된 경우 읽기 모드
-        }
-      } catch (error) {
-        console.log('일기 불러오기 실패:', error);
-      }
-    };
-    fetchDiary();
-  }, [diaryDate]);
 
   const handleSelectImage = () => {
     launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, response => {
@@ -58,7 +44,6 @@ const DiaryWriteScreen = () => {
       }
       if (response.assets && response.assets.length > 0) {
         setImageUri(response.assets[0].uri);
-        console.log('선택한 이미지 URI:', response.assets[0].uri);
       }
     });
   };
@@ -83,16 +68,16 @@ const DiaryWriteScreen = () => {
         });
       }
 
-      const response = await post(config.DIARY.CREATE_DIARY, formData, {
+      await post(config.DIARY.CREATE_DIARY, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      console.log('일기 생성 성공:', response);
       setIsEditing(false);
+      setHasDiary(true);
       Alert.alert('완료', '일기가 저장되었습니다.');
     } catch (error) {
       console.error('일기 생성 실패:', error);
-      if (error.response) console.error('서버 응답 데이터:', error.response.data);
+      Alert.alert('실패', '일기 저장 중 오류가 발생했습니다.');
     }
   };
 
@@ -128,7 +113,7 @@ const DiaryWriteScreen = () => {
       Alert.alert('완료', '일기가 수정되었습니다.');
       setIsEditing(false);
     } catch (error) {
-      console.log('일기 수정 실패:', error);
+      console.error('일기 수정 실패:', error);
       Alert.alert('수정 실패', '일기 수정 중 오류가 발생했습니다.');
     }
   };
@@ -143,11 +128,27 @@ const DiaryWriteScreen = () => {
     }
   };
 
+    useEffect(() => {
+    if (!diary) return;
+
+    setDiaryText(diary.content || '');
+    setMessageText(diary.message || '');
+    setImageUri(diary.imageUrl || null);
+    setHasDiary(true);
+    setIsEditing(false); // 이미 작성된 내용은 읽기 모드
+    }, [diary]);
+
+  
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => {
         if (isEditing) {
-          return <CustomButton title="완료" onPress={handleCreateDiary} />;
+          return (
+            <CustomButton
+              title="완료"
+              onPress={hasDiary ? handleEditDiary : handleCreateDiary}
+            />
+          );
         } else {
           return (
             <View style={{ flexDirection: 'row' }}>
@@ -169,7 +170,7 @@ const DiaryWriteScreen = () => {
         }
       },
     });
-  }, [navigation, isEditing, diaryText, imageUri, messageText]);
+  }, [navigation, isEditing, hasDiary, diaryText, imageUri, messageText]);
 
   return (
     <Wrapper>
@@ -186,9 +187,7 @@ const DiaryWriteScreen = () => {
               value={diaryText}
               onChangeText={setDiaryText}
               editable={isEditing}
-              placeholder={
-                '어느덧 15주차네요.\n아내를 향한 진심을 전달해보는 건 어떨까요?'
-              }
+              placeholder={'어느덧 15주차네요.\n아내를 향한 진심을 전달해보는 건 어떨까요?'}
               placeholderTextColor="#999"
               multiline
               textAlignVertical="top"
@@ -216,7 +215,7 @@ const DiaryWriteScreen = () => {
           </DiaryMessage>
 
           <DiaryRecordImg>
-            <TouchableOpacity onPress={handleSelectImage}>
+            <TouchableOpacity onPress={handleSelectImage} disabled={!isEditing}>
               <CommunityAddImg>
                 {imageUri ? (
                   <>
