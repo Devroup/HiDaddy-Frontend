@@ -79,7 +79,12 @@ const CommunityDetailScreen = () => {
 
   const handleToggleLike = async () => {
     try {
-      await apiPost(config.COMMUNITY.POST_LIKE(postId));
+      console.log("좋아요 API 호출:", config.COMMUNITY.POST_LIKE(postId));
+      await apiPost(config.COMMUNITY.POST_LIKE(postId))
+        .catch(err => {
+          if (err.response?.status !== 200 && err.response?.status !== 204) throw err;
+        });
+
       setPost((prev) => ({
         ...prev,
         liked: !prev?.liked,
@@ -87,6 +92,28 @@ const CommunityDetailScreen = () => {
       }));
     } catch (err) {
       console.log('좋아요 토글 실패:', err);
+      Alert.alert('좋아요 실패', '잠시 후 다시 시도해주세요.');
+    }
+  };
+
+  const handleToggleCommentLike = async (comment) => {
+    if (!postId || !comment?.id) return;
+    try {
+      console.log('댓글 좋아요 API 호출:', config.COMMUNITY.COMMENT_LIKE(postId, comment.id));
+      await apiPost(config.COMMUNITY.COMMENT_LIKE(postId, comment.id))
+        .catch(err => {
+          if (err.response?.status !== 200 && err.response?.status !== 204) throw err;
+        });
+
+      setComments(prev =>
+        prev.map(c =>
+          c.id === comment.id
+            ? { ...c, liked: !c.liked, likeCount: c.liked ? c.likeCount - 1 : c.likeCount + 1 }
+            : c
+        )
+      );
+    } catch (err) {
+      console.log('댓글 좋아요 토글 실패:', err);
     }
   };
 
@@ -102,6 +129,7 @@ const CommunityDetailScreen = () => {
       console.log('게시글 삭제 실패:', err);
     }
   };
+
   const openMenu = () => {
     Alert.alert('메뉴', '', [
       { text: '수정', onPress: handleEditPost },
@@ -124,10 +152,12 @@ const CommunityDetailScreen = () => {
       { text: '취소', style: 'cancel' },
     ]);
   };
+
   const handleEditComment = (comment) => {
     setCommentInput(comment.content);
     setEditingCommentId(comment.id);
   };
+
   const handleDeleteComment = async (comment) => {
     try {
       await del(config.COMMUNITY.DEL_COMMENT(postId, comment.id));
@@ -222,8 +252,8 @@ const CommunityDetailScreen = () => {
               <CommentsRow>
                 <CommentsText>{c.content}</CommentsText>
                 <CommentActions>
-                  <TouchableOpacity style={{ marginRight: 8 }}>
-                    <EmptyHeartlike width={20} height={20} />
+                  <TouchableOpacity style={{ marginRight: 8 }} onPress={() => handleToggleCommentLike(c)}>
+                    {c?.liked ? <Heartlike width={20} height={20} /> : <EmptyHeartlike width={20} height={20} />}
                   </TouchableOpacity>
                   {currentUser && c.authorId === currentUser.userId && (
                     <TouchableOpacity onPress={() => handleCommentMenu(c)}>
@@ -256,6 +286,7 @@ const CommunityDetailScreen = () => {
 
 export default CommunityDetailScreen;
 
+// --- Styled Components ---
 const Wrapper = styled.View`
   flex: 1;
   background-color: ${colors.white};
