@@ -54,7 +54,7 @@ const CommunityWriteScreen = () => {
       const formData = new FormData();
       formData.append('content', content);
 
-      if (imageUri) {
+      if (imageUri && imageUri !== editPost?.imageUrl) {
         formData.append('image', {
           uri: imageUri,
           type: 'image/jpeg',
@@ -82,6 +82,7 @@ const CommunityWriteScreen = () => {
       Alert.alert('오류', '게시글 작성/수정에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setLoading(false);
+      setImageUri(imageUri || editPost?.imageUrl);
     }
   };
 
