@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useState, useEffect } from 'react';
 import styled from 'styled-components/native';
 import colors from '../../constants/colors';
-import { post, del, put } from '../../services/api';
+import { post, del, put, get } from '../../services/api';
 import config from '../../constants/config';
 
 import Send from '../../assets/imgs/icons/send.svg';
@@ -34,6 +34,23 @@ const DiaryWriteScreen = () => {
     const day = today.getDate();
     return `${year}년 ${month}월 ${day}일`;
   };
+
+  useEffect(() => {
+    const fetchDiary = async () => {
+      try {
+        const response = await get(config.DIARY.DIARY(diaryDate));
+        if (response) {
+          setDiaryText(response.content || '');
+          setMessageText(response.message || '');
+          if (response.imageUrl) setImageUri(response.imageUrl);
+          setIsEditing(false); // 이미 작성된 경우 읽기 모드
+        }
+      } catch (error) {
+        console.log('일기 불러오기 실패:', error);
+      }
+    };
+    fetchDiary();
+  }, [diaryDate]);
 
   const handleSelectImage = () => {
     launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, response => {
@@ -189,7 +206,7 @@ const DiaryWriteScreen = () => {
               value={diaryText}
               onChangeText={setDiaryText}
               editable={isEditing}
-              placeholder={`어느덧 15주차네요.\n아내를 향한 진심을 전달해보는 건 어떨까요?`}
+              placeholder={`아내를 향한 진심을 전달해보는 건 어떨까요?`}
               placeholderTextColor="#999"
               multiline
               textAlignVertical="top"
