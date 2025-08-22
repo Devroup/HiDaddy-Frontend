@@ -118,15 +118,18 @@ const DiaryWriteScreen = () => {
     }
   };
 
-  const sendMessage = async () => {
+    const sendMessage = async () => {
     try {
-      await post(config.MESSAGE.SEND_MESSAGE, { content: messageText });
-      Alert.alert('완료', '메시지가 전송되었습니다.');
+        const url = `${config.MESSAGE.SEND_MESSAGE}?text=${encodeURIComponent(messageText)}`;
+
+        await post(url, {});
+        Alert.alert('완료', '메시지가 전송되었습니다.');
     } catch (error) {
-      console.error('메시지 전송 실패:', error);
-      Alert.alert('전송 실패', '메시지 전송 중 오류가 발생했습니다.');
-    }
-  };
+        console.error('메시지 전송 실패:', error.response?.data || error.message);
+        Alert.alert('전송 실패', '메시지 전송 중 오류가 발생했습니다.');
+        }
+    };
+    
 
     useEffect(() => {
     if (!diary) return;
@@ -135,10 +138,9 @@ const DiaryWriteScreen = () => {
     setMessageText(diary.message || '');
     setImageUri(diary.imageUrl || null);
     setHasDiary(true);
-    setIsEditing(false); // 이미 작성된 내용은 읽기 모드
+    setIsEditing(false);
     }, [diary]);
-
-  
+    
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => {
@@ -187,7 +189,7 @@ const DiaryWriteScreen = () => {
               value={diaryText}
               onChangeText={setDiaryText}
               editable={isEditing}
-              placeholder={'어느덧 15주차네요.\n아내를 향한 진심을 전달해보는 건 어떨까요?'}
+              placeholder={`어느덧 15주차네요.\n아내를 향한 진심을 전달해보는 건 어떨까요?`}
               placeholderTextColor="#999"
               multiline
               textAlignVertical="top"
