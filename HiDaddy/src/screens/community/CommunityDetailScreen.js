@@ -416,7 +416,10 @@ const CommentActions = styled.View`
   align-items: center;
 `;
 
-const CommentsText = styled(HmmText)``;
+const CommentsText = styled(HmmText)`
+  flex: 1;
+  margin-right: 8px;
+`;
 
 const CommentInputWrapper = styled.View`
   flex-direction: row;

@@ -26,6 +26,7 @@ const DiaryWriteScreen = () => {
   const [messageText, setMessageText] = useState(diary?.message || '');
   const [imageUri, setImageUri] = useState(diary?.imageUrl || null);
   const [hasDiary, setHasDiary] = useState(!!diary);
+  const [currentWeek, setCurrentWeek] = useState(null);
 
   const getFormattedDate = () => {
     const today = new Date(diaryDate);
@@ -35,22 +36,31 @@ const DiaryWriteScreen = () => {
     return `${year}년 ${month}월 ${day}일`;
   };
 
+  // 아기 정보 받아오기 -> babyGroupId 이용해 현재 주차 받아오기
   useEffect(() => {
-    const fetchDiary = async () => {
+    const fetchCurrentWeek = async () => {
       try {
-        const response = await get(config.DIARY.DIARY(diaryDate));
-        if (response) {
-          setDiaryText(response.content || '');
-          setMessageText(response.message || '');
-          if (response.imageUrl) setImageUri(response.imageUrl);
-          setIsEditing(false); // 이미 작성된 경우 읽기 모드
+        // 1. 선택된 아기 정보 조회
+        const babyRes = await get(config.USER.BABY_INFO);
+        const babyGroupId = babyRes?.babies?.[0]?.babyGroupId;
+
+        if (babyGroupId === undefined || babyGroupId === null) {
+          console.warn('선택된 아기가 없습니다.');
+          return;
+        }
+
+        // 2. babyGroupId로 현재 주차 조회
+        const weekRes = await get(`/api/weekly/current?groupId=${babyGroupId}`);
+        if (weekRes?.currentWeek !== undefined) {
+          setCurrentWeek(weekRes.currentWeek);
         }
       } catch (error) {
-        console.log('일기 불러오기 실패:', error);
+        console.error('현재 주차 불러오기 실패:', error);
       }
     };
-    fetchDiary();
-  }, [diaryDate]);
+
+    fetchCurrentWeek();
+  }, []);
 
   const handleSelectImage = () => {
     launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, response => {
@@ -115,7 +125,7 @@ const DiaryWriteScreen = () => {
       formData.append('content', diaryText);
       formData.append('message', messageText);
 
-      if (imageUri) {
+      if (imageUri && imageUri !== diary?.imageUrl) {
         formData.append('image', {
           uri: imageUri,
           type: 'image/jpeg',
@@ -129,26 +139,28 @@ const DiaryWriteScreen = () => {
 
       Alert.alert('완료', '일기가 수정되었습니다.');
       setIsEditing(false);
+      
+      setDiaryText(diaryText);
+      setMessageText(messageText);
+      setImageUri(imageUri || diary?.imageUrl);
     } catch (error) {
       console.error('일기 수정 실패:', error);
       Alert.alert('수정 실패', '일기 수정 중 오류가 발생했습니다.');
     }
   };
 
-    const sendMessage = async () => {
+  const sendMessage = async () => {
     try {
-        const url = `${config.MESSAGE.SEND_MESSAGE}?text=${encodeURIComponent(messageText)}`;
-
-        await post(url, {});
-        Alert.alert('완료', '메시지가 전송되었습니다.');
+      const url = `${config.MESSAGE.SEND_MESSAGE}?text=${encodeURIComponent(messageText)}`;
+      await post(url, {});
+      Alert.alert('완료', '메시지가 전송되었습니다.');
     } catch (error) {
-        console.error('메시지 전송 실패:', error.response?.data || error.message);
-        Alert.alert('전송 실패', '메시지 전송 중 오류가 발생했습니다.');
-        }
-    };
-    
+      console.error('메시지 전송 실패:', error.response?.data || error.message);
+      Alert.alert('전송 실패', '메시지 전송 중 오류가 발생했습니다.');
+    }
+  };
 
-    useEffect(() => {
+  useEffect(() => {
     if (!diary) return;
 
     setDiaryText(diary.content || '');
@@ -156,8 +168,8 @@ const DiaryWriteScreen = () => {
     setImageUri(diary.imageUrl || null);
     setHasDiary(true);
     setIsEditing(false);
-    }, [diary]);
-    
+  }, [diary]);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => {
@@ -197,7 +209,9 @@ const DiaryWriteScreen = () => {
         <DiaryTopSection>
           <DiaryMain>
             <DiaryTitle>
-              <MainTitle>{getFormattedDate()}</MainTitle>
+              <MainTitle>
+                {getFormattedDate()}
+              </MainTitle>
             </DiaryTitle>
           </DiaryMain>
 
@@ -206,7 +220,7 @@ const DiaryWriteScreen = () => {
               value={diaryText}
               onChangeText={setDiaryText}
               editable={isEditing}
-              placeholder={`아내를 향한 진심을 전달해보는 건 어떨까요?`}
+              placeholder={`${currentWeek !== null ? `어느덧 ${currentWeek}주차네요.` : ''}\n아내를 향한 진심을 전달해보는 건 어떨까요?`}
               placeholderTextColor="#999"
               multiline
               textAlignVertical="top"
