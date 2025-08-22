@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useLayoutEffect } from 'react';
+import { View } from 'react-native';
 import styled from 'styled-components/native';
 import {
   Dimensions,
@@ -18,9 +19,9 @@ import Info from '../../../assets/imgs/icons/info.svg';
 import Camera from '../../../assets/imgs/icons/camera.svg';
 import HeartCheck from '../../../assets/imgs/icons/heart_check.svg';
 import { HmmText, HmmBText } from '../../../components/CustomText';
-
 import { post } from '../../../services/api';
 import config from '../../../constants/config';
+import CustomButton from '../../../components/CustomButton'; // 헤더 버튼 컴포넌트
 
 const { width, height } = Dimensions.get('window');
 
@@ -33,25 +34,15 @@ const MissionPerformScreen = () => {
   const [keywords, setKeywords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [photoUri, setPhotoUri] = useState(null);
-
   const [judging, setJudging] = useState(false);
   const [keywordResults, setKeywordResults] = useState([]);
 
   const openCamera = async () => {
-    const options = {
-      mediaType: 'photo',
-      saveToPhotos: true,
-    };
-
+    const options = { mediaType: 'photo', saveToPhotos: true };
     try {
       const result = await launchCamera(options);
-      if (result.didCancel) {
-        console.log('사용자가 촬영을 취소했습니다.');
-      } else if (result.errorCode) {
-        console.error('카메라 오류:', result.errorMessage);
-      } else if (result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        console.log('📸 Camera result:', asset);
+      if (result.didCancel) return;
+      if (result.assets && result.assets.length > 0) {
         setPhotoUri(result.assets[0].uri);
       }
     } catch (error) {
@@ -62,7 +53,6 @@ const MissionPerformScreen = () => {
   const fetchMission = async () => {
     try {
       const res = await post(config.MISSION.GET_MISSION_KEYWORD, {});
-      console.log('res', res);
       setMissionId(res.missionId);
       setMissionTitle(res.title || '');
       setMissionDescription(res.description || '');
@@ -98,30 +88,36 @@ const MissionPerformScreen = () => {
       });
 
       const url = config.MISSION.MISSION_ANALYZE(missionId);
-
       const response = await post(url, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      console.log('검증 결과:', response);
-
-      setKeywordResults([
-        response.keyword1,
-        response.keyword2,
-        response.keyword3,
-      ]);
+      setKeywordResults([response.keyword1, response.keyword2, response.keyword3]);
     } catch (err) {
       console.error('AI 분석 오류:', err);
-      if (err.response) {
-        console.error('서버 응답:', err.response.data);
-      } else {
-        console.error('네트워크/환경 문제:', err.message);
-      }
       Alert.alert('실패', '사진 검증에 실패했습니다.');
     } finally {
       setJudging(false);
     }
   };
+
+  // ✅ 헤더 오른쪽 완료 버튼 추가
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <CustomButton
+          title="완료"
+          onPress={() => {
+            if (!missionId) {
+              Alert.alert('알림', '미션 정보가 아직 로드되지 않았습니다.');
+              return;
+            }
+            navigation.replace('MissionDetailScreen', { missionId });
+          }}
+        />
+      ),
+    });
+  }, [navigation, missionId]);
 
   return (
     <Wrapper>
@@ -131,7 +127,7 @@ const MissionPerformScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={{ paddingBottom: 100 }} // AI 버튼 안 가리게 여백
+          contentContainerStyle={{ paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
         >
           <Content>
@@ -139,35 +135,22 @@ const MissionPerformScreen = () => {
               <MisssionPerformTitle>
                 <Left>
                   <HeartYellow width={24} height={24} />
-                  <SectionTitle>
-                    {missionTitle || '불러오는 중...'}
-                  </SectionTitle>
+                  <SectionTitle>{missionTitle || '불러오는 중...'}</SectionTitle>
                 </Left>
-                <Touchablecolumn
-                  onPress={() => navigation.navigate('MissionInfoScreen')}
-                >
+                <Touchablecolumn onPress={() => navigation.navigate('MissionInfoScreen')}>
                   <Info width={24} height={24} />
                 </Touchablecolumn>
               </MisssionPerformTitle>
               <MissionPerform>
-                <PerformText>
-                  {missionDescription || '불러오는 중...'}
-                </PerformText>
+                <PerformText>{missionDescription || '불러오는 중...'}</PerformText>
               </MissionPerform>
             </MissionPerformMain>
 
-            <MissionPerformPhoto
-              onPress={openCamera}
-              style={{ marginTop: photoUri ? 10 : 50 }}
-            >
-              {photoUri ? (
-                <PreviewImage source={{ uri: photoUri }} />
-              ) : (
-                <>
-                  <Camera width={100} height={100} />
-                  <CameraText>촬영하기</CameraText>
-                </>
-              )}
+            <MissionPerformPhoto onPress={openCamera} style={{ marginTop: photoUri ? 10 : 50 }}>
+              {photoUri ? <PreviewImage source={{ uri: photoUri }} /> : <>
+                <Camera width={100} height={100} />
+                <CameraText>촬영하기</CameraText>
+              </>}
             </MissionPerformPhoto>
 
             <MissionPerformKeyword>
@@ -175,9 +158,7 @@ const MissionPerformScreen = () => {
                 <TitleText>사진 촬영 키워드</TitleText>
               </KeywordTitle>
               <KeywordInfo>
-                <InfoText>
-                  *다음 키워드들을 모두 포함하는 사진을 촬영해 주세요.
-                </InfoText>
+                <InfoText>*다음 키워드들을 모두 포함하는 사진을 촬영해 주세요.</InfoText>
               </KeywordInfo>
               {loading ? (
                 <InfoText>불러오는 중...</InfoText>
@@ -210,14 +191,12 @@ const MissionPerformScreen = () => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* AI 검증 버튼 */}
       <AiButton onPress={handleAiButtonPress}>
         <AiCircle>
           <HeartCheck width={32} height={32} />
         </AiCircle>
       </AiButton>
 
-      {/* 검증 중 Overlay */}
       {judging && (
         <Overlay>
           <OverlayText>전한 마음이 잘 담겼는지 확인 중이에요...</OverlayText>

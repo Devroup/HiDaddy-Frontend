@@ -1,43 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components/native';
+import { Dimensions, Image, View } from 'react-native';
+import { useRoute } from '@react-navigation/native';
 
 import colors from '../../../constants/colors';
 import Background from '../../../components/Background';
-
-import { get } from '../../../services/api';
-import config from '../../../constants/config';
-
 import HeartYellow from '../../../assets/imgs/icons/heart_yellow.svg';
 import { HmmText, HmmBText } from '../../../components/CustomText';
-import { Dimensions } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { get } from '../../../services/api';
+import config from '../../../constants/config';
 
 const { width } = Dimensions.get('window');
 
 const MissionDetailScreen = () => {
-  const navigation = useNavigation();
-  const [missionId, setMissionId] = useState(null);
+  const route = useRoute();
+  const { missionId } = route.params;
+
   const [missionTitle, setMissionTitle] = useState('');
   const [missionDescription, setMissionDescription] = useState('');
   const [keywords, setKeywords] = useState([]);
-  
-  // 과거 미션 불러오기
+  const [missionContent, setMissionContent] = useState('');
+  const [imageUrl, setImageUrl] = useState(null);
+
   const fetchPastMission = async () => {
+    if (!missionId) return;
+
     try {
       const res = await get(config.MISSION.PAST_MISSION(missionId));
-      console.log('API 응답:', res.data);
-      setMissionTitle(res.data.title);
-      setMissionDescription(res.data.description);
-      setKeywords(res.data.keywords);
+      console.log('Mission API 응답:', res);
+
+      setMissionTitle(res?.title || '미션 제목');
+      setMissionDescription(res?.description || '미션 설명');
+
+      const kws = [];
+      if (res.keyword1) kws.push({ text: res.keyword1, success: res.keyword1Success });
+      if (res.keyword2) kws.push({ text: res.keyword2, success: res.keyword2Success });
+      if (res.keyword3) kws.push({ text: res.keyword3, success: res.keyword3Success });
+      setKeywords(kws);
+
+      setMissionContent(res?.content || '작성된 내용이 없습니다.');
+      setImageUrl(res?.imageUrl || null);
+
     } catch (error) {
       console.error('과거 미션 가져오기 실패:', error);
+      setMissionTitle('미션 제목');
+      setMissionDescription('미션 설명');
+      setKeywords([]);
+      setMissionContent('작성된 내용이 없습니다.');
+      setImageUrl(null);
     }
-  }
+  };
 
   useEffect(() => {
-    if (missionId) {
-      fetchPastMission();
-    }
+    fetchPastMission();
   }, [missionId]);
 
   return (
@@ -46,39 +61,44 @@ const MissionDetailScreen = () => {
       <Content>
         <MissionHeader>
           <MissionDetailTitle>
-            <HeartYellow width={24} height={24}/>
-            <SectionTitle>{missionTitle || '미션 제목'}</SectionTitle>
+            <HeartYellow width={24} height={24} />
+            <SectionTitle>{missionTitle}</SectionTitle>
           </MissionDetailTitle>
           <MissionDetailContents>
-            <SectionContents>{missionDescription || '미션 설명'}</SectionContents>
+            <SectionContents>{missionDescription}</SectionContents>
           </MissionDetailContents>
         </MissionHeader>
 
-        <MissionImg>
-          <MissionConfirmImg>
-            {/* 필요 시 이미지 보여주기 */}
-          </MissionConfirmImg>
-          <MissionConfirmKeyWord>
-            <KeywordTitle>사진 촬영 키워드</KeywordTitle>
-            <KeywordListRow>
-              {keywords?.keywords?.map((kw, index) => (
-                <KeywordList key={index}>
-                  <ListText>{kw}</ListText>
+        {imageUrl && (
+          <MissionImg>
+            <MissionImage source={{ uri: imageUrl }} resizeMode="contain" />
+          </MissionImg>
+        )}
+
+        <MissionConfirmKeyWord>
+          <KeywordTitle>사진 촬영 키워드</KeywordTitle>
+          <KeywordListRow>
+            {keywords.length > 0 ? (
+              keywords.map((kw, idx) => (
+                <KeywordList key={idx}>
+                  <KeywordCircle success={kw.success} />
+                  <ListText>{kw.text}</ListText>
                 </KeywordList>
-              ))}
-            </KeywordListRow>
-          </MissionConfirmKeyWord>
-        </MissionImg>
+              ))
+            ) : (
+              <ListText>키워드 없음</ListText>
+            )}
+          </KeywordListRow>
+        </MissionConfirmKeyWord>
 
         <MissionRecord>
           <MissionRecordTitle>
             <RecordTitle>어떤 마음으로 전했나요?</RecordTitle>
           </MissionRecordTitle>
           <MissionRecordContents>
-            <RecordContentsText>'마음 기록 없음'</RecordContentsText>
+            <RecordContentsText>{missionContent}</RecordContentsText>
           </MissionRecordContents>
         </MissionRecord>
-
       </Content>
     </Wrapper>
   );
@@ -97,56 +117,81 @@ const Content = styled.View`
 const MissionHeader = styled.View``;
 
 const MissionDetailTitle = styled.View`
-  flex-direction: row;
+  flex-direction: row; 
+  align-items: center;
 `;
 
 const SectionTitle = styled(HmmBText)`
   font-size: ${width*0.045}px;
+  margin-left: 8px;
 `;
 
 const MissionDetailContents = styled.View`
-  flex-direction: column;
 `;
 
 const SectionContents = styled(HmmText)`
-  font-size: ${width*0.038}px;
-  color: ${colors.gray200};
+  font-size: ${width*0.038}px; 
+  color: ${colors.gray200}; 
   margin-top: 20px;
 `;
 
-const MissionImg = styled.View``;
+const MissionImg = styled.View`
+  margin-top: 20px; 
+  align-items: center;
+`;
 
-const MissionConfirmImg = styled.View``;
+const MissionImage = styled(Image)`
+  width: ${width*0.8}px; 
+  height: ${width*0.5}px; 
+  border-radius: 10px;
+`;
 
-const MissionConfirmKeyWord = styled.View``;
+const MissionConfirmKeyWord = styled.View`
+  margin-top: 20px;
+`;
 
 const KeywordTitle = styled(HmmBText)`
-  font-size: ${width*0.04}px;
-  margin-top: 20px;
+  font-size: ${width*0.04}px; 
+  margin-bottom: 10px;
 `;
 
 const KeywordListRow = styled.View`
   flex-direction: row;
-  margin-top: 27px;
-  justify-content: center;
-  gap: ${width*0.25}px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px; 
+  flex-wrap: wrap;
 `;
 
-const KeywordList = styled.View``;
+const KeywordList = styled.View`
+  flex-direction: row; 
+  align-items: center;
+`;
 
 const ListText = styled(HmmText)`
-  font-size: ${width*0.038}px;
+  font-size: ${width*0.038}px; 
+  margin-left: 5px;
 `;
 
-const MissionRecord = styled.View``;
+const KeywordCircle = styled.View`
+  width: 12px;
+  height: 12px;
+  border-radius: 6px;
+  background-color: ${({ success }) => (success ? colors.yellow : colors.gray200)};
+`;
 
+const MissionRecord = styled.View`
+  margin-top: 30px;
+`;
 const MissionRecordTitle = styled.View``;
 
 const RecordTitle = styled(HmmBText)`
   font-size: ${width*0.04}px;
-  margin-top: 27px;
 `;
-
-const MissionRecordContents = styled.View``;
-
-const RecordContentsText = styled(HmmText)``;
+const MissionRecordContents = styled.View`
+  margin-top: 10px;
+`;
+const RecordContentsText = styled(HmmText)`
+  font-size: ${width*0.038}px;
+  color: ${colors.gray200};
+`;
