@@ -78,13 +78,10 @@ const CommunityDetailScreen = () => {
   };
 
   const handleToggleLike = async () => {
+    if (!postId) return;
     try {
       console.log("좋아요 API 호출:", config.COMMUNITY.POST_LIKE(postId));
-      await apiPost(config.COMMUNITY.POST_LIKE(postId))
-        .catch(err => {
-          if (err.response?.status !== 200 && err.response?.status !== 204) throw err;
-        });
-
+      await apiPost(config.COMMUNITY.POST_LIKE(postId));
       setPost((prev) => ({
         ...prev,
         liked: !prev?.liked,
@@ -101,10 +98,6 @@ const CommunityDetailScreen = () => {
     try {
       console.log('댓글 좋아요 API 호출:', config.COMMUNITY.COMMENT_LIKE(postId, comment.id));
       await apiPost(config.COMMUNITY.COMMENT_LIKE(postId, comment.id))
-        .catch(err => {
-          if (err.response?.status !== 200 && err.response?.status !== 204) throw err;
-        });
-
       setComments(prev =>
         prev.map(c =>
           c.id === comment.id
