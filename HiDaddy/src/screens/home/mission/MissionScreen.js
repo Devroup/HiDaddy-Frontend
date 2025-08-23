@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components/native';
 import { Dimensions, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import dayjs from 'dayjs';
 
 import colors from '../../../constants/colors';
 import Background from '../../../components/Background';
@@ -19,14 +18,16 @@ const { width } = Dimensions.get('window');
 const MissionScreen = () => {
     const navigation = useNavigation();
     const [missionTitle, setMissionTitle] = useState('');
+    const [currentMissionId, setCurrentMissionId] = useState(null);
     const [doneMissions, setDoneMissions] = useState([]);
-    const [todayDone, setTodayDone] = useState(false);
+    const [alreadyDone, setAlreadyDone] = useState(false);
 
     const fetchMission = async () => {
         try {
             const res = await post(config.MISSION.GET_MISSION_KEYWORD, {});
             console.log('API 응답:', res);
             setMissionTitle(res.title || '오늘의 마음 전하기');
+            setCurrentMissionId(res.missionId || null);
         } catch (error) {
             console.error('미션 조회 실패:', error);
             setMissionTitle('오늘의 마음 전하기');
@@ -40,25 +41,28 @@ const MissionScreen = () => {
             const missions = res.missionLogList || [];
             setDoneMissions(missions);
 
-            const today = dayjs().format('YYYY-MM-DD');
-            const doneToday = missions.some(
-                (mission) => dayjs(mission.missionDate).format('YYYY-MM-DD') === today
-            );
-            setTodayDone(doneToday);
+            if (currentMissionId) {
+               const doneBefore = missions.some(
+                   (mission) => mission.missionId === currentMissionId
+               );
+               setAlreadyDone(doneBefore);
+            }
         } catch (error) {
             console.error('미션 과거 목록 조회 실패:', error);
             setDoneMissions([]);
-            setTodayDone(false);
+            setAlreadyDone(false);
         }
     };
 
     useEffect(() => {
-        fetchMission();
-        fetchDoneMissions();
-    }, []);
+    fetchMission();
+     if (currentMissionId) {
+       fetchDoneMissions();
+     }
+    }, [currentMissionId]);
 
     const handleMissionPress = () => {
-        if (todayDone) {
+        if (alreadyDone) {
             Alert.alert(
                 '오늘 미션 완료',
                 '오늘은 이미 미션을 수행했습니다. 아래 목록에서 확인할 수 있습니다.'
