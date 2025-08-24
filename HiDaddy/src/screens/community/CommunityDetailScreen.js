@@ -79,32 +79,34 @@ const CommunityDetailScreen = () => {
 
   const handleToggleLike = async () => {
     if (!postId) return;
+
+    setPost(prev => ({
+      ...prev,
+      liked: !prev?.liked,
+      likeCount: prev?.liked ? prev.likeCount - 1 : prev.likeCount + 1,
+    }));
+
     try {
       console.log("좋아요 API 호출:", config.COMMUNITY.POST_LIKE(postId));
       await apiPost(config.COMMUNITY.POST_LIKE(postId));
-      setPost((prev) => ({
-        ...prev,
-        liked: !prev?.liked,
-        likeCount: prev?.liked ? prev.likeCount - 1 : prev.likeCount + 1,
-      }));
     } catch (err) {
-      console.log('좋아요 토글 실패:', err);
-      Alert.alert('좋아요 실패', '잠시 후 다시 시도해주세요.');
+      console.log("좋아요 토글 실패:", err);
     }
   };
 
+
   const handleToggleCommentLike = async (comment) => {
     if (!postId || !comment?.id) return;
-    try {
-      console.log('댓글 좋아요 API 호출:', config.COMMUNITY.COMMENT_LIKE(postId, comment.id));
-      await apiPost(config.COMMUNITY.COMMENT_LIKE(postId, comment.id))
-      setComments(prev =>
+    setComments(prev =>
         prev.map(c =>
           c.id === comment.id
             ? { ...c, liked: !c.liked, likeCount: c.liked ? c.likeCount - 1 : c.likeCount + 1 }
             : c
         )
-      );
+    );
+    try {
+      console.log('댓글 좋아요 API 호출:', config.COMMUNITY.COMMENT_LIKE(postId, comment.id));
+      await apiPost(config.COMMUNITY.COMMENT_LIKE(postId, comment.id))
     } catch (err) {
       console.log('댓글 좋아요 토글 실패:', err);
     }
@@ -217,7 +219,7 @@ const CommunityDetailScreen = () => {
             <TouchableOpacity onPress={handleToggleLike}>
               {post?.liked ? <Heartlike width={24} height={24} /> : <EmptyHeartlike width={24} height={24} />}
             </TouchableOpacity>
-            <Heartlikecount><CountText>{post.likeCount || 0}</CountText></Heartlikecount>
+            <Heartlikecount><CountText>{post.likeCount}</CountText></Heartlikecount>
           </CommunityMainLike>
           <CommunityMainComment>
             <CommentIcon width={24} height={24} />
