@@ -1,15 +1,7 @@
 import React, { useEffect, useState, useLayoutEffect } from 'react';
-import { View } from 'react-native';
+import { View, Dimensions, Image, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import styled from 'styled-components/native';
-import {
-  Dimensions,
-  Image,
-  Alert,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { launchCamera } from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useNavigation } from '@react-navigation/native';
 
 import colors from '../../../constants/colors';
@@ -21,7 +13,7 @@ import HeartCheck from '../../../assets/imgs/icons/heart_check.svg';
 import { HmmText, HmmBText } from '../../../components/CustomText';
 import { post } from '../../../services/api';
 import config from '../../../constants/config';
-import CustomButton from '../../../components/CustomButton'; // 헤더 버튼 컴포넌트
+import CustomButton from '../../../components/CustomButton';
 
 const { width, height } = Dimensions.get('window');
 
@@ -37,17 +29,43 @@ const MissionPerformScreen = () => {
   const [judging, setJudging] = useState(false);
   const [keywordResults, setKeywordResults] = useState([]);
 
-  const openCamera = async () => {
-    const options = { mediaType: 'photo', saveToPhotos: true };
-    try {
-      const result = await launchCamera(options);
-      if (result.didCancel) return;
-      if (result.assets && result.assets.length > 0) {
-        setPhotoUri(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error('카메라 실행 실패:', error);
-    }
+  const openPhotoPicker = () => {
+    Alert.alert(
+      '사진 선택',
+      '사진을 어디서 가져올까요?',
+      [
+        {
+          text: '카메라',
+          onPress: async () => {
+            try {
+              const result = await launchCamera({ mediaType: 'photo', saveToPhotos: true });
+              if (result.didCancel) return;
+              if (result.assets && result.assets.length > 0) {
+                setPhotoUri(result.assets[0].uri);
+              }
+            } catch (error) {
+              console.error('카메라 실행 실패:', error);
+            }
+          },
+        },
+        {
+          text: '갤러리',
+          onPress: async () => {
+            try {
+              const result = await launchImageLibrary({ mediaType: 'photo' });
+              if (result.didCancel) return;
+              if (result.assets && result.assets.length > 0) {
+                setPhotoUri(result.assets[0].uri);
+              }
+            } catch (error) {
+              console.error('갤러리 선택 실패:', error);
+            }
+          },
+        },
+        { text: '취소', style: 'cancel' },
+      ],
+      { cancelable: true }
+    );
   };
 
   const fetchMission = async () => {
@@ -73,7 +91,7 @@ const MissionPerformScreen = () => {
 
   const handleAiButtonPress = async () => {
     if (!photoUri || !missionId) {
-      Alert.alert('알림', '사진을 먼저 촬영해주세요.');
+      Alert.alert('알림', '사진을 먼저 촬영하거나 업로드해주세요.');
       return;
     }
 
@@ -101,7 +119,6 @@ const MissionPerformScreen = () => {
     }
   };
 
-  // ✅ 헤더 오른쪽 완료 버튼 추가
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -146,10 +163,10 @@ const MissionPerformScreen = () => {
               </MissionPerform>
             </MissionPerformMain>
 
-            <MissionPerformPhoto onPress={openCamera} style={{ marginTop: photoUri ? 10 : 50 }}>
+            <MissionPerformPhoto onPress={openPhotoPicker} style={{ marginTop: photoUri ? 10 : 50 }}>
               {photoUri ? <PreviewImage source={{ uri: photoUri }} /> : <>
                 <Camera width={100} height={100} />
-                <CameraText>촬영하기</CameraText>
+                <CameraText>촬영/업로드</CameraText>
               </>}
             </MissionPerformPhoto>
 
@@ -208,140 +225,46 @@ const MissionPerformScreen = () => {
 
 export default MissionPerformScreen;
 
-const Wrapper = styled.View`
-  flex: 1;
-`;
+// Styled Components
 
-const Content = styled.View`
-  padding: ${width * 0.07}px;
-`;
-
-const MissionPerformMain = styled.View`
-  flex-direction: column;
-`;
-
-const Left = styled.View`
-  flex-direction: row;
-  align-items: center;
-  gap: ${width * 0.02}px;
-`;
-
-const MisssionPerformTitle = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-`;
-
-const SectionTitle = styled(HmmBText)`
-  font-size: ${width * 0.05}px;
-  color: ${colors.black};
-  margin-bottom: 10px;
-`;
-
+const Wrapper = styled.View`flex: 1;`;
+const Content = styled.View`padding: ${width * 0.07}px;`;
+const MissionPerformMain = styled.View`flex-direction: column;`;
+const Left = styled.View`flex-direction: row; align-items: center; gap: ${width * 0.02}px;`;
+const MisssionPerformTitle = styled.View`flex-direction: row; align-items: center; justify-content: space-between;`;
+const SectionTitle = styled(HmmBText)`font-size: ${width * 0.05}px; color: ${colors.black}; margin-bottom: 10px;`;
 const Touchablecolumn = styled.TouchableOpacity``;
-
 const MissionPerform = styled.View``;
-
-const PerformText = styled(HmmText)`
-  font-size: ${width * 0.038}px;
-  color: ${colors.black};
-  margin-bottom: 10px;
-`;
-
-const MissionPerformPhoto = styled.TouchableOpacity`
-  align-items: center;
-`;
-
-const PreviewImage = styled(Image)`
-  width: ${width * 0.7}px;
-  height: ${width * 0.7}px;
-  border-radius: 10px;
-`;
-
-const CameraText = styled(HmmText)`
-  font-size: ${width * 0.038}px;
-  color: ${colors.gray100};
-`;
-
+const PerformText = styled(HmmText)`font-size: ${width * 0.038}px; color: ${colors.black}; margin-bottom: 10px;`;
+const MissionPerformPhoto = styled.TouchableOpacity`align-items: center;`;
+const PreviewImage = styled(Image)`width: ${width * 0.7}px; height: ${width * 0.7}px; border-radius: 10px;`;
+const CameraText = styled(HmmText)`font-size: ${width * 0.038}px; color: ${colors.gray100};`;
 const MissionPerformKeyword = styled.View``;
-
-const KeywordTitle = styled.View`
-  margin-top: 30px;
-`;
-
-const TitleText = styled(HmmBText)`
-  font-size: ${width * 0.04}px;
-`;
-
-const KeywordInfo = styled.View`
-  margin-top: 10px;
-`;
-
-const InfoText = styled(HmmText)`
-  font-size: ${width * 0.034}px;
-`;
-
-const KeywordList = styled.View`
-  flex-direction: row;
-  justify-content: center;
-  margin-top: 10px;
-  flex-wrap: wrap;
-`;
-
-const KeywordListColumn = styled.View`
-  margin: ${width * 0.01}px ${width * 0.076}px;
-  align-items: center;
-`;
-
-const KeywordWrapper = styled.View`
-  position: relative;
-  justify-content: center;
-  align-items: center;
-`;
-
-const KeywordText = styled(HmmText)`
-  font-size: ${width * 0.038}px;
-  color: ${colors.black};
-`;
-
-const YellowCircleAbove = styled.View`
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-7px);
-  width: 18px;
-  height: 18px;
-  border-radius: 9px;
-  background-color: ${colors.yellow};
-  opacity: 0.4;
-  z-index: 1;
-`;
-
-const MissionPerformMemo = styled.View`
-  margin-top: 20px;
-`;
-
+const KeywordTitle = styled.View`margin-top: 30px;`;
+const TitleText = styled(HmmBText)`font-size: ${width * 0.04}px;`;
+const KeywordInfo = styled.View`margin-top: 10px;`;
+const InfoText = styled(HmmText)`font-size: ${width * 0.034}px;`;
+const KeywordList = styled.View`flex-direction: row; justify-content: center; margin-top: 10px; flex-wrap: wrap;`;
+const KeywordListColumn = styled.View`margin: ${width * 0.01}px ${width * 0.076}px; align-items: center;`;
+const KeywordWrapper = styled.View`position: relative; justify-content: center; align-items: center;`;
+const KeywordText = styled(HmmText)`font-size: ${width * 0.038}px; color: ${colors.black};`;
+const YellowCircleAbove = styled.View`position: absolute; top: 0; left: 50%; transform: translateX(-7px); width: 18px; height: 18px; border-radius: 9px; background-color: ${colors.yellow}; opacity: 0.4; z-index: 1;`;
+const MissionPerformMemo = styled.View`margin-top: 20px;`;
 const MissionPerformMemoTitle = styled.View``;
-
 const MissionPerformMemoInfo = styled.View``;
-
-const InfoInput = styled.TextInput.attrs({
-  placeholderTextColor: colors.gray200,
-})`
+const InfoInput = styled.TextInput.attrs({ placeholderTextColor: colors.gray200 })`
   font-family: 'HancomMalangMalang-Regular';
   font-size: ${width * 0.036}px;
   color: ${colors.black};
   line-height: 22px;
   text-align-vertical: top;
 `;
-
 const AiButton = styled.TouchableOpacity`
   position: absolute;
   bottom: ${width * 0.12}px;
   right: ${width * 0.06}px;
   z-index: 10;
 `;
-
 const AiCircle = styled.View`
   background-color: ${colors.white};
   width: ${width * 0.14}px;
@@ -352,7 +275,6 @@ const AiCircle = styled.View`
   align-items: center;
   elevation: 4;
 `;
-
 const Overlay = styled.View`
   position: absolute;
   top: 0;
@@ -364,10 +286,4 @@ const Overlay = styled.View`
   align-items: center;
   padding: 20px;
 `;
-
-const OverlayText = styled(HmmBText)`
-  color: ${colors.white};
-  font-size: ${width * 0.05}px;
-  text-align: center;
-  margin-top: 20px;
-`;
+const OverlayText = styled(HmmBText)`color: ${colors.white}; font-size: ${width * 0.05}px; text-align: center; margin-top: 20px;`;
