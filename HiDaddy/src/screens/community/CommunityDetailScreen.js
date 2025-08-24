@@ -1,6 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { Dimensions, KeyboardAvoidingView, Alert, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  Dimensions,
+  Keyboard,
+  Alert,
+  TouchableOpacity,
+  ScrollView,
+  Platform,
+} from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
 import colors from '../../constants/colors';
@@ -14,11 +21,13 @@ import { HmmBText, HmmText } from '../../components/CustomText';
 import { get, post as apiPost, del, put } from '../../services/api';
 import config from '../../constants/config';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const CommunityDetailScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
+  const scrollRef = useRef(null);
+
   const initialPost = route.params?.post;
   const postId = initialPost?.id || route.params?.postId;
 
@@ -28,6 +37,7 @@ const CommunityDetailScreen = () => {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const fetchCurrentUser = async () => {
     try {
@@ -50,11 +60,8 @@ const CommunityDetailScreen = () => {
   const fetchComments = async () => {
     try {
       const response = await get(config.COMMUNITY.GET_COMMENT(postId));
-      if (Array.isArray(response.content)) {
-        setComments([...response.content]);
-      } else {
-        setComments([]);
-      }
+      if (Array.isArray(response.content)) setComments([...response.content]);
+      else setComments([]);
     } catch (err) {
       console.log('댓글 불러오기 실패:', err);
       setComments([]);
@@ -71,7 +78,11 @@ const CommunityDetailScreen = () => {
         await apiPost(config.COMMUNITY.CREATE_COMMENT(postId), { content: commentInput });
       }
       setCommentInput('');
-      fetchComments();
+      await fetchComments();
+
+      setTimeout(() => {
+        scrollRef.current?.scrollToEnd({ animated: true });
+      }, 100);
     } catch (err) {
       console.log('댓글 전송 실패:', err);
     }
@@ -79,74 +90,44 @@ const CommunityDetailScreen = () => {
 
   const handleToggleLike = async () => {
     if (!postId) return;
-
     setPost(prev => ({
       ...prev,
       liked: !prev?.liked,
       likeCount: prev?.liked ? prev.likeCount - 1 : prev.likeCount + 1,
     }));
-
-    try {
-      console.log("좋아요 API 호출:", config.COMMUNITY.POST_LIKE(postId));
-      await apiPost(config.COMMUNITY.POST_LIKE(postId));
-    } catch (err) {
-      console.log("좋아요 토글 실패:", err);
-    }
+    try { await apiPost(config.COMMUNITY.POST_LIKE(postId)); } 
+    catch (err) { console.log("좋아요 토글 실패:", err); }
   };
-
 
   const handleToggleCommentLike = async (comment) => {
     if (!postId || !comment?.id) return;
     setComments(prev =>
-        prev.map(c =>
-          c.id === comment.id
-            ? { ...c, liked: !c.liked, likeCount: c.liked ? c.likeCount - 1 : c.likeCount + 1 }
-            : c
-        )
+      prev.map(c =>
+        c.id === comment.id
+          ? { ...c, liked: !c.liked, likeCount: c.liked ? c.likeCount - 1 : c.likeCount + 1 }
+          : c
+      )
     );
-    try {
-      console.log('댓글 좋아요 API 호출:', config.COMMUNITY.COMMENT_LIKE(postId, comment.id));
-      await apiPost(config.COMMUNITY.COMMENT_LIKE(postId, comment.id))
-    } catch (err) {
-      console.log('댓글 좋아요 토글 실패:', err);
-    }
+    try { await apiPost(config.COMMUNITY.COMMENT_LIKE(postId, comment.id)) } 
+    catch (err) { console.log('댓글 좋아요 토글 실패:', err); }
   };
 
-  const handleEditPost = () => {
-    navigation.navigate('CommunityWriteScreen', { post });
-  };
-
-  const handleDeletePost = async () => {
-    try {
-      await del(config.COMMUNITY.DEL_POST(postId));
-      navigation.goBack();
-    } catch (err) {
-      console.log('게시글 삭제 실패:', err);
-    }
-  };
-
-  const openMenu = () => {
-    Alert.alert('메뉴', '', [
-      { text: '수정', onPress: handleEditPost },
-      { 
-        text: '삭제', 
-        onPress: () =>
-          Alert.alert('삭제 확인', '정말 삭제하시겠습니까?', [
-            { text: '취소', style: 'cancel' },
-            { text: '삭제', style: 'destructive', onPress: handleDeletePost },
-          ])
-      },
+  const handleEditPost = () => navigation.navigate('CommunityWriteScreen', { post });
+  const handleDeletePost = async () => { try { await del(config.COMMUNITY.DEL_POST(postId)); navigation.goBack(); } catch (err) { console.log('게시글 삭제 실패:', err); } };
+  const openMenu = () => Alert.alert('메뉴', '', [
+    { text: '수정', onPress: handleEditPost },
+    { text: '삭제', onPress: () => Alert.alert('삭제 확인', '정말 삭제하시겠습니까?', [
       { text: '취소', style: 'cancel' },
-    ]);
-  };
+      { text: '삭제', style: 'destructive', onPress: handleDeletePost },
+    ]) },
+    { text: '취소', style: 'cancel' },
+  ]);
 
-  const handleCommentMenu = (comment) => {
-    Alert.alert('댓글 메뉴', '', [
-      { text: '수정', onPress: () => handleEditComment(comment) },
-      { text: '삭제', onPress: () => handleDeleteComment(comment) },
-      { text: '취소', style: 'cancel' },
-    ]);
-  };
+  const handleCommentMenu = (comment) => Alert.alert('댓글 메뉴', '', [
+    { text: '수정', onPress: () => handleEditComment(comment) },
+    { text: '삭제', onPress: () => handleDeleteComment(comment) },
+    { text: '취소', style: 'cancel' },
+  ]);
 
   const handleEditComment = (comment) => {
     setCommentInput(comment.content);
@@ -154,12 +135,8 @@ const CommunityDetailScreen = () => {
   };
 
   const handleDeleteComment = async (comment) => {
-    try {
-      await del(config.COMMUNITY.DEL_COMMENT(postId, comment.id));
-      fetchComments();
-    } catch (err) {
-      console.log('댓글 삭제 실패:', err);
-    }
+    try { await del(config.COMMUNITY.DEL_COMMENT(postId, comment.id)); fetchComments(); } 
+    catch (err) { console.log('댓글 삭제 실패:', err); }
   };
 
   const formatDateTime = (timestamp) => {
@@ -175,6 +152,14 @@ const CommunityDetailScreen = () => {
   useEffect(() => {
     Promise.all([fetchCurrentUser(), fetchPostDetail(), fetchComments()])
       .finally(() => setLoading(false));
+
+    const showListener = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+      scrollRef.current?.scrollToEnd({ animated: true });
+    });
+    const hideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardHeight(0));
+
+    return () => { showListener.remove(); hideListener.remove(); };
   }, [postId]);
 
   if (loading) return (<Wrapper><HmmText>로딩 중입니다...</HmmText></Wrapper>);
@@ -182,16 +167,15 @@ const CommunityDetailScreen = () => {
 
   return (
     <Wrapper>
-      <ScrollView contentContainerStyle={{ padding: width * 0.08, paddingBottom: 120 }}>
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={{ padding: width * 0.08, paddingBottom: keyboardHeight + 80 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* 게시글 */}
         <CommunityMainProfile>
           <MainProfileLeft>
-            <MainProfileIMG
-              source={
-                post.authorProfileImageUrl
-                  ? { uri: post.authorProfileImageUrl }
-                  : require('../../assets/imgs/icons/myprofile.svg')
-              }
-            />
+            <MainProfileIMG source={post.authorProfileImageUrl ? { uri: post.authorProfileImageUrl } : require('../../assets/imgs/icons/myprofile.svg')} />
             <MainProfileText>
               <ProfileId>
                 <Id><IdText>{post.authorName}</IdText></Id>
@@ -202,9 +186,7 @@ const CommunityDetailScreen = () => {
 
           {currentUser && post.authorId === currentUser.userId && (
             <MainProfileFix>
-              <TouchableOpacity onPress={openMenu}>
-                <Dot width={24} height={24} />
-              </TouchableOpacity>
+              <TouchableOpacity onPress={openMenu}><Dot width={24} height={24} /></TouchableOpacity>
             </MainProfileFix>
           )}
         </CommunityMainProfile>
@@ -229,52 +211,40 @@ const CommunityDetailScreen = () => {
 
         {comments.length === 0 ? (
           <CommentsText>댓글이 없습니다.</CommentsText>
-        ) : (
-          comments.map((c) => (
-            <CommentItem key={c.id}>
-              <UserProfile>
-                <CommentProfileIMG
-                  source={
-                    c.authorProfileImageUrl
-                      ? { uri: c.authorProfileImageUrl }
-                      : require('../../assets/imgs/icons/myprofile.svg')
-                  }
-                />
-                <Id><IdText>{c.authorName}</IdText></Id>
-                <Time><TimeText>{formatDateTime(c.createdAt)}</TimeText></Time>
-              </UserProfile>
-
-              <CommentsRow>
-                <CommentsText>{c.content}</CommentsText>
-                <CommentActions>
-                  <TouchableOpacity style={{ marginRight: 8 }} onPress={() => handleToggleCommentLike(c)}>
-                    {c?.liked ? <Heartlike width={20} height={20} /> : <EmptyHeartlike width={20} height={20} />}
-                  </TouchableOpacity>
-                  {currentUser && c.authorId === currentUser.userId && (
-                    <TouchableOpacity onPress={() => handleCommentMenu(c)}>
-                      <Dot width={20} height={20} />
-                    </TouchableOpacity>
-                  )}
-                </CommentActions>
-              </CommentsRow>
-            </CommentItem>
-          ))
-        )}
+        ) : comments.map(c => (
+          <CommentItem key={c.id}>
+            <UserProfile>
+              <CommentProfileIMG source={c.authorProfileImageUrl ? { uri: c.authorProfileImageUrl } : require('../../assets/imgs/icons/myprofile.svg')} />
+              <Id><IdText>{c.authorName}</IdText></Id>
+              <Time><TimeText>{formatDateTime(c.createdAt)}</TimeText></Time>
+            </UserProfile>
+            <CommentsRow>
+              <CommentsText>{c.content}</CommentsText>
+              <CommentActions>
+                <TouchableOpacity style={{ marginRight: 8 }} onPress={() => handleToggleCommentLike(c)}>
+                  {c?.liked ? <Heartlike width={20} height={20} /> : <EmptyHeartlike width={20} height={20} />}
+                </TouchableOpacity>
+                {currentUser && c.authorId === currentUser.userId && (
+                  <TouchableOpacity onPress={() => handleCommentMenu(c)}><Dot width={20} height={20} /></TouchableOpacity>
+                )}
+              </CommentActions>
+            </CommentsRow>
+          </CommentItem>
+        ))}
       </ScrollView>
 
-      <KeyboardAvoidingView behavior={undefined} keyboardVerticalOffset={0}>
-        <CommentInputWrapper>
-          <StyledTextInput
-            placeholder="댓글을 입력하세요."
-            placeholderTextColor={colors.gray100}
-            value={commentInput}
-            onChangeText={setCommentInput}
-          />
-          <SendButton onPress={handleSend}>
-            <Send width={28} height={28} />
-          </SendButton>
-        </CommentInputWrapper>
-      </KeyboardAvoidingView>
+      {/* 댓글 입력창 */}
+      <CommentInputWrapper keyboardHeight={keyboardHeight}>
+        <StyledTextInput
+          placeholder="댓글을 입력하세요."
+          placeholderTextColor={colors.gray100}
+          value={commentInput}
+          onChangeText={setCommentInput}
+        />
+        <SendButton onPress={handleSend}>
+          <Send width={28} height={28} />
+        </SendButton>
+      </CommentInputWrapper>
     </Wrapper>
   );
 };
@@ -282,148 +252,44 @@ const CommunityDetailScreen = () => {
 export default CommunityDetailScreen;
 
 // --- Styled Components ---
-const Wrapper = styled.View`
-  flex: 1;
-  background-color: ${colors.white};
-`;
-
-const CommunityMainProfile = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom-width: 1px;
-  border-bottom-color: ${colors.gray100};
-  padding-bottom: 10px;
-`;
-
-const MainProfileLeft = styled.View`
-  flex-direction: row;
-  align-items: center;
-`;
-
-const MainProfileIMG = styled.Image`
-  border-radius: 100px;
-  width: 40px;
-  height: 40px;
-`;
-
-const CommentProfileIMG = styled.Image`
-  border-radius: 100px;
-  width: 30px;
-  height: 30px;
-`;
-
-const MainProfileText = styled.View`
-  margin-left: 10px;
-`;
-
-const ProfileId = styled.View`
-  flex-direction: column;
-`;
-
+const Wrapper = styled.View`flex: 1; background-color: ${colors.white};`;
+const CommunityMainProfile = styled.View`flex-direction: row; align-items: center; justify-content: space-between; border-bottom-width: 1px; border-bottom-color: ${colors.gray100}; padding-bottom: 10px;`;
+const MainProfileLeft = styled.View`flex-direction: row; align-items: center;`;
+const MainProfileIMG = styled.Image`border-radius: 100px; width: 40px; height: 40px;`;
+const CommentProfileIMG = styled.Image`border-radius: 100px; width: 30px; height: 30px;`;
+const MainProfileText = styled.View`margin-left: 10px;`;
+const ProfileId = styled.View`flex-direction: column;`;
 const Id = styled.View``;
-
-const IdText = styled(HmmText)`
-  font-size: ${width * 0.038}px;
-  color: ${colors.black};
-`;
-
-const Time = styled.View`
-  margin-top: 4px;
-`;
-
-const TimeText = styled(HmmText)`
-  font-size: ${width * 0.034}px;
-  color: ${colors.gray100};
-`;
-
-const MainProfileFix = styled.View`
-  flex-direction: row;
-`;
-
-const CommunityMainContent = styled.View`
-  margin-top: 17px;
-`;
-
+const IdText = styled(HmmText)`font-size: ${width*0.038}px; color: ${colors.black};`;
+const Time = styled.View`margin-top: 4px;`;
+const TimeText = styled(HmmText)`font-size: ${width*0.034}px; color: ${colors.gray100};`;
+const MainProfileFix = styled.View`flex-direction: row;`;
+const CommunityMainContent = styled.View`margin-top: 17px;`;
 const ContentText = styled(HmmText)``;
-
-const PostImage = styled.Image`
-  width: 100%;
-  height: 300px;
-  border-radius: 12px;
-  margin-top: 12px;
-`;
-
-const CommunityMainResponse = styled.View`
-  margin-top: 17px;
-  flex-direction: row;
-  border-bottom-width: 1px;
-  border-bottom-color: ${colors.gray100};
-  padding-bottom: ${width * 0.03}px;
-  margin-bottom: ${width * 0.02}px;
-`;
-
-const CommunityMainLike = styled.View`
-  flex-direction: row;
-  align-items: center;
-`;
-
-const CommunityMainComment = styled.View`
-  flex-direction: row;
-  margin-left: 9px;
-`;
-
-const Heartlikecount = styled.View`
-  margin-left: 4px;
-`;
-
-const CountText = styled(HmmText)`
-  color: ${colors.red};
-`;
-
-const Commentcount = styled.View`
-  margin-left: 4px;
-`;
-
+const PostImage = styled.Image`width: 100%; height: 300px; border-radius: 12px; margin-top: 12px;`;
+const CommunityMainResponse = styled.View`margin-top: 17px; flex-direction: row; border-bottom-width: 1px; border-bottom-color: ${colors.gray100}; padding-bottom: ${width*0.03}px; margin-bottom: ${width*0.02}px;`;
+const CommunityMainLike = styled.View`flex-direction: row; align-items: center;`;
+const CommunityMainComment = styled.View`flex-direction: row; margin-left: 9px;`;
+const Heartlikecount = styled.View`margin-left: 4px;`;
+const CountText = styled(HmmText)`color: ${colors.red};`;
+const Commentcount = styled.View`margin-left: 4px;`;
 const CommentText = styled(HmmBText)``;
-
-const CommentItem = styled.View`
-  margin-bottom: ${width * 0.02}px;
-  border-bottom-width: 1px;
-  border-bottom-color: ${colors.gray100};
-  padding-bottom: ${width * 0.03}px;
-`;
-
-const UserProfile = styled.View`
-  flex-direction: row;
-  gap: ${width * 0.02}px;
-  align-items: center;
-`;
-
-const CommentsRow = styled.View`
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  margin-left: ${width * 0.07}px;
-  margin-top: ${width * 0.015}px;
-`;
-
-const CommentActions = styled.View`
-  flex-direction: row;
-  align-items: center;
-`;
-
-const CommentsText = styled(HmmText)`
-  flex: 1;
-  margin-right: 8px;
-`;
+const CommentItem = styled.View`margin-bottom: ${width*0.02}px; border-bottom-width: 1px; border-bottom-color: ${colors.gray100}; padding-bottom: ${width*0.03}px;`;
+const UserProfile = styled.View`flex-direction: row; gap: ${width*0.02}px; align-items: center;`;
+const CommentsRow = styled.View`flex-direction: row; justify-content: space-between; align-items: center; margin-left: ${width*0.07}px; margin-top: ${width*0.015}px;`;
+const CommentActions = styled.View`flex-direction: row; align-items: center;`;
+const CommentsText = styled(HmmText)`flex: 1; margin-right: 8px;`;
 
 const CommentInputWrapper = styled.View`
+  position: absolute;
+  bottom: ${props => props.keyboardHeight || 0}px;
+  left: 0;
+  right: 0;
   flex-direction: row;
   align-items: center;
   border-top-width: 1px;
   border-top-color: ${colors.gray100};
-  padding: 8px 12px 20px;
+  padding: 8px 12px;
   background-color: ${colors.white};
 `;
 

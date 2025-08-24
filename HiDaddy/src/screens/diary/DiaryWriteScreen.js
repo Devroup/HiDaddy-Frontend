@@ -11,6 +11,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Dimensions, View, Alert, TouchableOpacity } from 'react-native';
 import CustomButton from '../../components/CustomButton';
 import { launchImageLibrary } from 'react-native-image-picker';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const { width } = Dimensions.get('window');
 
@@ -36,11 +37,9 @@ const DiaryWriteScreen = () => {
     return `${year}년 ${month}월 ${day}일`;
   };
 
-  // 아기 정보 받아오기 -> babyGroupId 이용해 현재 주차 받아오기
   useEffect(() => {
     const fetchCurrentWeek = async () => {
       try {
-        // 1. 선택된 아기 정보 조회
         const babyRes = await get(config.USER.BABY_INFO);
         const babyGroupId = babyRes?.babies?.[0]?.babyGroupId;
 
@@ -49,7 +48,6 @@ const DiaryWriteScreen = () => {
           return;
         }
 
-        // 2. babyGroupId로 현재 주차 조회
         const weekRes = await get(`/api/weekly/current?groupId=${babyGroupId}`);
         if (weekRes?.currentWeek !== undefined) {
           setCurrentWeek(weekRes.currentWeek);
@@ -139,7 +137,7 @@ const DiaryWriteScreen = () => {
 
       Alert.alert('완료', '일기가 수정되었습니다.');
       setIsEditing(false);
-      
+
       setDiaryText(diaryText);
       setMessageText(messageText);
       setImageUri(imageUri || diary?.imageUrl);
@@ -205,67 +203,75 @@ const DiaryWriteScreen = () => {
 
   return (
     <Wrapper>
-      <Content>
-        <DiaryTopSection>
-          <DiaryMain>
-            <DiaryTitle>
-              <MainTitle>
-                {getFormattedDate()}
-              </MainTitle>
-            </DiaryTitle>
-          </DiaryMain>
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        enableOnAndroid={true}
+        extraScrollHeight={20}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Content>
+          <DiaryTopSection>
+            <DiaryMain>
+              <DiaryTitle>
+                <MainTitle>{getFormattedDate()}</MainTitle>
+              </DiaryTitle>
+            </DiaryMain>
 
-          <DiaryMainContent>
-            <DiaryInput
-              value={diaryText}
-              onChangeText={setDiaryText}
-              editable={isEditing}
-              placeholder={`${currentWeek !== null ? `어느덧 ${currentWeek}주차네요.` : ''}\n아내를 향한 진심을 전달해보는 건 어떨까요?`}
-              placeholderTextColor="#999"
-              multiline
-              textAlignVertical="top"
-            />
-          </DiaryMainContent>
-        </DiaryTopSection>
-
-        <DiarySubContent>
-          <DiaryMessage>
-            <MessageTitle>아내에게 하고싶은 말 한마디</MessageTitle>
-            <MessageContent>
-              <MessageInput
-                value={messageText}
-                onChangeText={setMessageText}
+            <DiaryMainContent>
+              <DiaryInput
+                value={diaryText}
+                onChangeText={setDiaryText}
                 editable={isEditing}
-                placeholder={'직접 말하지 못한걸 글로 표현해보는건 어떨까요?'}
+                placeholder={`${
+                  currentWeek !== null ? `어느덧 ${currentWeek}주차네요.` : ''
+                }\n아내를 향한 진심을 전달해보는 건 어떨까요?`}
                 placeholderTextColor="#999"
                 multiline
                 textAlignVertical="top"
               />
-              <TouchableOpacity onPress={sendMessage}>
-                <Send width={30} height={30} />
-              </TouchableOpacity>
-            </MessageContent>
-          </DiaryMessage>
+            </DiaryMainContent>
+          </DiaryTopSection>
 
-          <DiaryRecordImg>
-            <TouchableOpacity onPress={handleSelectImage} disabled={!isEditing}>
-              <CommunityAddImg>
-                {imageUri ? (
-                  <>
-                    <ImagePreview source={{ uri: imageUri }} />
-                    <AttachText>이미지 첨부됨</AttachText>
-                  </>
-                ) : (
-                  <GalleryRow>
-                    <AttachText>초음파 사진 한 장을 첨부하세요</AttachText>
-                    <Gallery width={30} height={30} />
-                  </GalleryRow>
-                )}
-              </CommunityAddImg>
-            </TouchableOpacity>
-          </DiaryRecordImg>
-        </DiarySubContent>
-      </Content>
+          <DiarySubContent>
+            <DiaryMessage>
+              <MessageTitle>아내에게 하고싶은 말 한마디</MessageTitle>
+              <MessageContent>
+                <MessageInput
+                  value={messageText}
+                  onChangeText={setMessageText}
+                  editable={isEditing}
+                  placeholder={'직접 말하지 못한걸 글로 표현해보는건 어떨까요?'}
+                  placeholderTextColor="#999"
+                  multiline
+                  textAlignVertical="top"
+                />
+                <TouchableOpacity onPress={sendMessage}>
+                  <Send width={30} height={30} />
+                </TouchableOpacity>
+              </MessageContent>
+            </DiaryMessage>
+
+            <DiaryRecordImg>
+              <TouchableOpacity onPress={handleSelectImage} disabled={!isEditing}>
+                <CommunityAddImg>
+                  {imageUri ? (
+                    <>
+                      <ImagePreview source={{ uri: imageUri }} />
+                      <AttachText>이미지 첨부됨</AttachText>
+                    </>
+                  ) : (
+                    <GalleryRow>
+                      <AttachText>초음파 사진 한 장을 첨부하세요</AttachText>
+                      <Gallery width={30} height={30} />
+                    </GalleryRow>
+                  )}
+                </CommunityAddImg>
+              </TouchableOpacity>
+            </DiaryRecordImg>
+          </DiarySubContent>
+        </Content>
+      </KeyboardAwareScrollView>
     </Wrapper>
   );
 };
