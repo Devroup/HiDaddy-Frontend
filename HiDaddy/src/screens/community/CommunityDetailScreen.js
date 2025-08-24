@@ -302,11 +302,13 @@ const MainProfileLeft = styled.View`
 `;
 
 const MainProfileIMG = styled.Image`
+  border-radius: 100px;
   width: 40px;
   height: 40px;
 `;
 
 const CommentProfileIMG = styled.Image`
+  border-radius: 100px;
   width: 30px;
   height: 30px;
 `;
