@@ -90,7 +90,7 @@ const MypageScreen = ({ navigation: { navigate } }) => {
       <Background />
       <Content>
         <HeaderContainer>
-          <HeaderTitle>하트 교환소</HeaderTitle>
+          <HeaderTitle>마이페이지</HeaderTitle>
         </HeaderContainer>
         <MenuContainer>
           <MenuItem

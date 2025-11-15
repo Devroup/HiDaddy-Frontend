@@ -11,7 +11,7 @@ import CustomCalendar from './CustomCalendar.js';
 import Background from '../../components/Background';
 import { HmmBText, HmmText } from '../../components/CustomText';
 import { Dimensions, Image, ScrollView, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -20,6 +20,7 @@ const DiaryScreen = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [diaryList, setDiaryList] = useState([]);
   const [selectedDiary, setSelectedDiary] = useState(null);
+  const [hasSelectedDate, setHasSelectedDate] = useState(false);
 
   const startDate = dayjs().startOf('month').format('YYYY-MM-DD');
   const endDate = dayjs().endOf('month').format('YYYY-MM-DD');
@@ -52,58 +53,90 @@ const DiaryScreen = () => {
       const response = await get(config.DIARY.DIARY(date));
       console.log('Res', response);
       setSelectedDiary(response);
+      return response;
     } catch (error) {
       console.error('개별 일기 가져오기 실패:', error);
+      return null;
     }
   };
 
   useEffect(() => {
-    fetchDiaryList();
+    const initializeDiary = async () => {
+      await fetchDiaryList();
+      // 오늘 날짜로 자동 선택
+      const today = dayjs().format('YYYY-MM-DD');
+      setHasSelectedDate(true);
+      await fetchDiaryByDate(today);
+    };
+
+    initializeDiary();
   }, []);
+
+  // 화면에 포커스될 때마다 일기 목록 새로고침
+  useFocusEffect(
+    React.useCallback(() => {
+      const refreshDiary = async () => {
+        await fetchDiaryList();
+        // 현재 선택된 날짜의 일기 다시 불러오기
+        if (hasSelectedDate) {
+          const currentDateStr = dayjs(currentDate).format('YYYY-MM-DD');
+          await fetchDiaryByDate(currentDateStr);
+        }
+      };
+
+      refreshDiary();
+    }, [currentDate, hasSelectedDate])
+  );
 
   return (
     <Wrapper>
       <Background />
-      <Content>
-        <DiaryMain>
-          <DiaryMainTitle>
-            <MainTitle>사랑이 가득차는 순간들</MainTitle>
-            <TouchableWrite
-              onPress={() =>
-                navigation.navigate('DiaryStackNavigator', {
-                  screen: 'DiaryWriteScreen',
-                })
-              }
-            >
-              <Write width={35} height={35} />
-            </TouchableWrite>
-          </DiaryMainTitle>
-          <DiarySubTitle>
-            <SubTitle>지금, 그 감정을 남겨보세요.</SubTitle>
-          </DiarySubTitle>
-        </DiaryMain>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
+        <Content>
+          <DiaryMain>
+            <DiaryMainTitle>
+              <MainTitle>사랑이 가득차는 순간들</MainTitle>
+              <TouchableWrite
+                onPress={async () => {
+                  const today = dayjs().format('YYYY-MM-DD');
+                  const todayDiary = await fetchDiaryByDate(today);
 
-        <CalendarWrapper>
-          <CustomCalendar
-            currentDate={currentDate}
-            setCurrentDate={date => {
-              setCurrentDate(date);
-              setSelectedDiary(null);
-              fetchDiaryByDate(dayjs(date).format('YYYY-MM-DD'));
-            }}
-            diaryDates={diaryList.map(item => item.date)}
-            onSelectDate={date => {
-              setSelectedDiary(null);
-              fetchDiaryByDate(dayjs(date).format('YYYY-MM-DD'));
-            }}
-          />
-        </CalendarWrapper>
+                  navigation.navigate('DiaryStackNavigator', {
+                    screen: 'DiaryWriteScreen',
+                    params: todayDiary?.content ? { diary: todayDiary } : { date: today },
+                  });
+                }}
+              >
+                <Write width={35} height={35} />
+              </TouchableWrite>
+            </DiaryMainTitle>
+            <DiarySubTitle>
+              <SubTitle>지금, 그 감정을 남겨보세요.</SubTitle>
+            </DiarySubTitle>
+          </DiaryMain>
 
-        <DiaryPost>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 30 }}
-          >
+          <CalendarWrapper>
+            <CustomCalendar
+              currentDate={currentDate}
+              setCurrentDate={date => {
+                setCurrentDate(date);
+                setSelectedDiary(null);
+                setHasSelectedDate(true);
+                fetchDiaryByDate(dayjs(date).format('YYYY-MM-DD'));
+              }}
+              diaryDates={diaryList.map(item => item.date)}
+              onSelectDate={date => {
+                setSelectedDiary(null);
+                setHasSelectedDate(true);
+                fetchDiaryByDate(dayjs(date).format('YYYY-MM-DD'));
+              }}
+            />
+          </CalendarWrapper>
+
+          <DiaryPost>
             {selectedDiary && selectedDiary.content ? (
               <TouchableDiaryItem
                 onPress={() =>
@@ -114,16 +147,33 @@ const DiaryScreen = () => {
                 }
               >
                 {selectedDiary.imageUrl ? (
-                  <DiaryImage source={{ uri: selectedDiary.imageUrl }} />
+                  <DiaryImage
+                    source={{ uri: selectedDiary.imageUrl }}
+                    onLoad={(e) => {
+                      const { width: imgWidth, height: imgHeight } = e.nativeEvent.source;
+                      const aspectRatio = imgWidth / imgHeight;
+                      e.target.setNativeProps({
+                        style: {
+                          aspectRatio: aspectRatio
+                        }
+                      });
+                    }}
+                  />
                 ) : null}
                 <DiaryText>{selectedDiary.content}</DiaryText>
               </TouchableDiaryItem>
             ) : (
-              <EmptyText>일기를 확인할 날짜를 선택하세요.</EmptyText>
+              <EmptyText>
+                {hasSelectedDate
+                  ? dayjs(currentDate).format('YYYY-MM-DD') === dayjs().format('YYYY-MM-DD')
+                    ? '오늘 날짜에 작성된 일기가 없습니다.'
+                    : '선택한 날짜에 작성된 일기가 없습니다.'
+                  : '일기를 확인할 날짜를 선택하세요.'}
+              </EmptyText>
             )}
-          </ScrollView>
-        </DiaryPost>
-      </Content>
+          </DiaryPost>
+        </Content>
+      </ScrollView>
     </Wrapper>
   );
 };
@@ -134,9 +184,9 @@ const Wrapper = styled.View`
   flex: 1;
 `;
 const Content = styled.View`
-  flex: 1;
   margin-top: 30px;
   padding: ${width * 0.1}px;
+  padding-bottom: 30px;
 `;
 const DiaryMain = styled.View``;
 const DiaryMainTitle = styled.View`
@@ -160,7 +210,6 @@ const CalendarWrapper = styled.View`
   overflow: hidden;
 `;
 const DiaryPost = styled.View`
-  flex: 1;
   margin-top: ${width * 0.04}px;
 `;
 const TouchableDiaryItem = styled(TouchableOpacity)`
@@ -175,8 +224,8 @@ const DiaryText = styled(HmmText)`
 `;
 const DiaryImage = styled(Image)`
   width: 100%;
-  height: 150px;
   border-radius: 10px;
+  resize-mode: contain;
 `;
 const EmptyText = styled(HmmText)`
   font-size: ${width * 0.04}px;

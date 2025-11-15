@@ -1,6 +1,7 @@
 import React from 'react';
 import colors from '../../constants/colors';
 import styled from 'styled-components/native';
+import dayjs from 'dayjs';
 
 import LeftArrow from '../../assets/imgs/icons/left_arrow.svg';
 import RightArrow from '../../assets/imgs/icons/right_arrow.svg';
@@ -113,6 +114,8 @@ const CustomCalendar = ({
           const dayOfWeek = new Date(date.dateString).getDay();
           const isSunday = dayOfWeek === 0;
           const isSaturday = dayOfWeek === 6;
+          const isSelected = date.dateString === currentDateStr;
+
           const textColor =
             state === 'disabled'
               ? '#d9e1e8'
@@ -134,14 +137,16 @@ const CustomCalendar = ({
                 }
               }}
             >
-              <HmmText style={{ color: textColor, textAlign: 'center' }}>
-                {date.day}
-              </HmmText>
-              {hasDiary && (
-                <HeartWrapper>
-                  <HeartYellow width={10} height={10} />
-                </HeartWrapper>
-              )}
+              <DayContainer isSelected={isSelected}>
+                {hasDiary && (
+                  <HeartWrapper>
+                    <HeartYellow width={24} height={24} />
+                  </HeartWrapper>
+                )}
+                <HmmText style={{ color: textColor, textAlign: 'center', zIndex: 1 }}>
+                  {date.day}
+                </HmmText>
+              </DayContainer>
             </DayTouchable>
           );
         }}
@@ -179,11 +184,21 @@ const ArrowButton = styled.TouchableOpacity``;
 
 const HeartWrapper = styled.View`
   position: absolute;
-  bottom: 18px;
+  z-index: 0;
 `;
 
 const DayTouchable = styled.TouchableOpacity`
   align-items: center;
   justify-content: center;
+  height: 40px;
+`;
+
+const DayContainer = styled.View`
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  align-items: center;
+  justify-content: center;
+  background-color: ${props => props.isSelected ? colors.primary : 'transparent'};
   position: relative;
 `;
