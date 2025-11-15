@@ -123,7 +123,8 @@ const HomeScreen = () => {
         <DescriptionText>
           아빠가 기록한 감정 일기와,{'\n'}
           아내의 현재 임신 주차 정보를 기반으로{'\n'}
-          오늘 전하면 좋을 다정한 실천을 AI가 추천해드립니다.
+          오늘 전하면 좋을 다정한 실천을 AI가 추천해드립니다.{'\n'}
+          아내에게 간편하게 한 줄 메시지도 보낼 수 있어요.
         </DescriptionText>
 
         <Image
@@ -144,7 +145,7 @@ const HomeScreen = () => {
             })
           }
         >
-          <RowText>오늘의 마음 전하기</RowText>
+          <RowText>미션 & 메시지 보내기</RowText>
           <RightArrow width={24} height={24} />
         </TouchableRow>
       </Content>
@@ -154,6 +155,9 @@ const HomeScreen = () => {
           navigation.navigate('EtcStackNavigator', { screen: 'ChatBotScreen' })
         }
       >
+        <ChatbotTooltip>
+          <TooltipText>궁금한 게 있다면{'\n'}챗봇에게 물어보세요!</TooltipText>
+        </ChatbotTooltip>
         <ChatbotCircle>
           <Bot width={32} height={32} />
         </ChatbotCircle>
@@ -248,6 +252,27 @@ const ChatbotButton = styled.TouchableOpacity`
   position: absolute;
   bottom: ${width * 0.08}px;
   right: ${width * 0.06}px;
+  align-items: flex-end;
+`;
+
+const ChatbotTooltip = styled.View`
+  background-color: ${colors.white};
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1.5px solid ${colors.black};
+  margin-bottom: 8px;
+  elevation: 2;
+  shadow-color: #000;
+  shadow-offset: 0px 2px;
+  shadow-opacity: 0.1;
+  shadow-radius: 4px;
+`;
+
+const TooltipText = styled(HmmText)`
+  font-size: ${width * 0.032}px;
+  color: ${colors.black};
+  text-align: center;
+  line-height: 16px;
 `;
 
 const ChatbotCircle = styled.View`

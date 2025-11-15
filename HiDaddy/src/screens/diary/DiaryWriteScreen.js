@@ -4,7 +4,6 @@ import colors from '../../constants/colors';
 import { post, del, put, get } from '../../services/api';
 import config from '../../constants/config';
 
-import Send from '../../assets/imgs/icons/send.svg';
 import Gallery from '../../assets/imgs/icons/addimg.svg';
 import { HmmBText, HmmText } from '../../components/CustomText';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -24,7 +23,6 @@ const DiaryWriteScreen = () => {
 
   const [isEditing, setIsEditing] = useState(!diary);
   const [diaryText, setDiaryText] = useState(diary?.content || '');
-  const [messageText, setMessageText] = useState(diary?.message || '');
   const [imageUri, setImageUri] = useState(diary?.imageUrl || null);
   const [hasDiary, setHasDiary] = useState(!!diary);
   const [currentWeek, setCurrentWeek] = useState(null);
@@ -82,7 +80,6 @@ const DiaryWriteScreen = () => {
     try {
       const formData = new FormData();
       formData.append('content', diaryText);
-      formData.append('message', messageText);
       formData.append('date', diaryDate);
 
       if (imageUri) {
@@ -121,7 +118,6 @@ const DiaryWriteScreen = () => {
     try {
       const formData = new FormData();
       formData.append('content', diaryText);
-      formData.append('message', messageText);
 
       if (imageUri && imageUri !== diary?.imageUrl) {
         formData.append('image', {
@@ -139,7 +135,6 @@ const DiaryWriteScreen = () => {
       setIsEditing(false);
 
       setDiaryText(diaryText);
-      setMessageText(messageText);
       setImageUri(imageUri || diary?.imageUrl);
     } catch (error) {
       console.error('일기 수정 실패:', error);
@@ -147,22 +142,10 @@ const DiaryWriteScreen = () => {
     }
   };
 
-  const sendMessage = async () => {
-    try {
-      const url = `${config.MESSAGE.SEND_MESSAGE}?text=${encodeURIComponent(messageText)}`;
-      await post(url, {});
-      Alert.alert('완료', '메시지가 전송되었습니다.');
-    } catch (error) {
-      console.error('메시지 전송 실패:', error.response?.data || error.message);
-      Alert.alert('전송 실패', '메시지 전송 중 오류가 발생했습니다.');
-    }
-  };
-
   useEffect(() => {
     if (!diary) return;
 
     setDiaryText(diary.content || '');
-    setMessageText(diary.message || '');
     setImageUri(diary.imageUrl || null);
     setHasDiary(true);
     setIsEditing(false);
@@ -199,7 +182,7 @@ const DiaryWriteScreen = () => {
         }
       },
     });
-  }, [navigation, isEditing, hasDiary, diaryText, imageUri, messageText]);
+  }, [navigation, isEditing, hasDiary, diaryText, imageUri]);
 
   return (
     <Wrapper>
@@ -234,24 +217,6 @@ const DiaryWriteScreen = () => {
           </DiaryTopSection>
 
           <DiarySubContent>
-            <DiaryMessage>
-              <MessageTitle>아내에게 하고싶은 말 한마디</MessageTitle>
-              <MessageContent>
-                <MessageInput
-                  value={messageText}
-                  onChangeText={setMessageText}
-                  editable={isEditing}
-                  placeholder={'직접 말하지 못한걸 글로 표현해보는건 어떨까요?'}
-                  placeholderTextColor="#999"
-                  multiline
-                  textAlignVertical="top"
-                />
-                <TouchableOpacity onPress={sendMessage}>
-                  <Send width={30} height={30} />
-                </TouchableOpacity>
-              </MessageContent>
-            </DiaryMessage>
-
             <DiaryRecordImg>
               <TouchableOpacity onPress={handleSelectImage} disabled={!isEditing}>
                 <CommunityAddImg>
@@ -318,30 +283,7 @@ const DiarySubContent = styled.View`
   padding-top: ${width * 0.01}px;
 `;
 
-const DiaryMessage = styled.View`
-  margin-top: ${width * 0.05}px;
-`;
-
-const MessageTitle = styled(HmmBText)`
-  font-size: ${width * 0.04}px;
-`;
-
-const MessageContent = styled.View`
-  flex-direction: row;
-  align-items: center;
-  gap: ${width * 0.02}px;
-`;
-
-const MessageInput = styled.TextInput`
-  flex: 1;
-  font-family: 'HancomMalangMalang-Regular';
-  font-size: ${width * 0.038}px;
-  line-height: 23px;
-`;
-
 const DiaryRecordImg = styled.View`
-  border-top-width: 1px;
-  border-top-color: ${colors.gray100};
   margin-top: ${width * 0.04}px;
 `;
 
