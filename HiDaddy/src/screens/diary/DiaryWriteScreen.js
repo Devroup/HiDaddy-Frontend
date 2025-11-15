@@ -7,10 +7,9 @@ import config from '../../constants/config';
 import Gallery from '../../assets/imgs/icons/addimg.svg';
 import { HmmBText, HmmText } from '../../components/CustomText';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Dimensions, View, Alert, TouchableOpacity } from 'react-native';
+import { Dimensions, View, Alert, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import CustomButton from '../../components/CustomButton';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const { width } = Dimensions.get('window');
 
@@ -185,59 +184,62 @@ const DiaryWriteScreen = () => {
   }, [navigation, isEditing, hasDiary, diaryText, imageUri]);
 
   return (
-    <Wrapper>
-      <KeyboardAwareScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ flexGrow: 1 }}
-        enableOnAndroid={true}
-        extraScrollHeight={20}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Content>
-          <DiaryTopSection>
-            <DiaryMain>
-              <DiaryTitle>
-                <MainTitle>{getFormattedDate()}</MainTitle>
-              </DiaryTitle>
-            </DiaryMain>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <Wrapper>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Content>
+            <DiaryTopSection>
+              <DiaryMain>
+                <DiaryTitle>
+                  <MainTitle>{getFormattedDate()}</MainTitle>
+                </DiaryTitle>
+              </DiaryMain>
 
-            <DiaryMainContent>
-              <DiaryInput
-                value={diaryText}
-                onChangeText={setDiaryText}
-                editable={isEditing}
-                placeholder={`${
-                  currentWeek !== null ? `어느덧 ${currentWeek}주차네요.` : ''
-                }\n아내를 향한 진심을 전달해보는 건 어떨까요?`}
-                placeholderTextColor="#999"
-                multiline
-                textAlignVertical="top"
-              />
-            </DiaryMainContent>
-          </DiaryTopSection>
+              <DiaryMainContent>
+                <DiaryInput
+                  value={diaryText}
+                  onChangeText={setDiaryText}
+                  editable={isEditing}
+                  placeholder={`${
+                    currentWeek !== null ? `어느덧 ${currentWeek}주차네요.` : ''
+                  }\n아내를 향한 진심을 전달해보는 건 어떨까요?`}
+                  placeholderTextColor="#999"
+                  multiline
+                  textAlignVertical="top"
+                />
+              </DiaryMainContent>
+            </DiaryTopSection>
 
-          <DiarySubContent>
-            <DiaryRecordImg>
-              <TouchableOpacity onPress={handleSelectImage} disabled={!isEditing}>
-                <CommunityAddImg>
-                  {imageUri ? (
-                    <>
-                      <ImagePreview source={{ uri: imageUri }} />
-                      <AttachText>이미지 첨부됨</AttachText>
-                    </>
-                  ) : (
-                    <GalleryRow>
-                      <AttachText>초음파 사진 한 장을 첨부하세요</AttachText>
-                      <Gallery width={30} height={30} />
-                    </GalleryRow>
-                  )}
-                </CommunityAddImg>
-              </TouchableOpacity>
-            </DiaryRecordImg>
-          </DiarySubContent>
-        </Content>
-      </KeyboardAwareScrollView>
-    </Wrapper>
+            <DiarySubContent>
+              <DiaryRecordImg>
+                <TouchableOpacity onPress={handleSelectImage} disabled={!isEditing}>
+                  <CommunityAddImg>
+                    {imageUri ? (
+                      <>
+                        <ImagePreview source={{ uri: imageUri }} />
+                        <AttachText>이미지 첨부됨</AttachText>
+                      </>
+                    ) : (
+                      <GalleryRow>
+                        <AttachText>초음파 사진 한 장을 첨부하세요</AttachText>
+                        <Gallery width={30} height={30} />
+                      </GalleryRow>
+                    )}
+                  </CommunityAddImg>
+                </TouchableOpacity>
+              </DiaryRecordImg>
+            </DiarySubContent>
+          </Content>
+        </ScrollView>
+      </Wrapper>
+    </KeyboardAvoidingView>
   );
 };
 

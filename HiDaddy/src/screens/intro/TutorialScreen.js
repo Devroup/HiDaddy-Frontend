@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import styled from 'styled-components/native';
 import { useNavigation } from '@react-navigation/native';
-import { Dimensions, FlatList, Alert } from 'react-native';
+import { Dimensions, FlatList, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 
 import colors from '../../constants/colors';
@@ -78,6 +78,14 @@ const TutorialScreen = () => {
   };
 
   const handleNext = async () => {
+    // 첫 번째 페이지에서 다음으로 넘어갈 때 유효성 검사
+    if (page === 0) {
+      if (!nickname || !babyname || !dueDate) {
+        Alert.alert('입력 오류', '모든 정보를 입력해 주세요.');
+        return;
+      }
+    }
+
     if (page < PAGES.length - 1) {
       flatListRef.current.scrollToIndex({ index: page + 1 });
       return;
@@ -127,92 +135,98 @@ const TutorialScreen = () => {
     <Wrapper>
       <Background />
 
-      <FlatList
-        ref={flatListRef}
-        data={PAGES}
-        keyExtractor={(_, idx) => `page-${idx}`}
-        renderItem={({ item, index }) => {
-          if (index === 0) {
-            return (
-              <Content>
-                <Title>{item.title}</Title>
-                <Description>{item.description}</Description>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={0}
+      >
+        <FlatList
+          ref={flatListRef}
+          data={PAGES}
+          keyExtractor={(_, idx) => `page-${idx}`}
+          renderItem={({ item, index }) => {
+            if (index === 0) {
+              return (
+                <Content>
+                  <Title>{item.title}</Title>
+                  <Description>{item.description}</Description>
 
-                <FormContainer>
-                  <InputBox>
-                    <Label>아빠 닉네임</Label>
-                    <Input
-                      placeholder="닉네임을 입력하세요"
-                      value={nickname}
-                      onChangeText={setNickname}
-                    />
-                  </InputBox>
+                  <FormContainer>
+                    <InputBox>
+                      <Label>아빠 닉네임</Label>
+                      <Input
+                        placeholder="닉네임을 입력하세요"
+                        value={nickname}
+                        onChangeText={setNickname}
+                      />
+                    </InputBox>
 
-                  <InputBox>
-                    <Label>출산 예정일</Label>
-                    <DateInput onPress={showDatePicker}>
-                      <DateInputText>
-                        {dueDate
-                          ? dueDate.toLocaleDateString()
-                          : '출산 예정일을 선택하세요'}
-                      </DateInputText>
-                    </DateInput>
-                  </InputBox>
+                    <InputBox>
+                      <Label>출산 예정일</Label>
+                      <DateInput onPress={showDatePicker}>
+                        <DateInputText>
+                          {dueDate
+                            ? dueDate.toLocaleDateString()
+                            : '출산 예정일을 선택하세요'}
+                        </DateInputText>
+                      </DateInput>
+                    </InputBox>
 
-                  <InputBox>
-                    <Label>태명</Label>
-                    <Input
-                      placeholder="태명을 입력하세요"
-                      value={babyname}
-                      onChangeText={setBabyname}
-                    />
-                  </InputBox>
-
-                  {showTwinInput && (
-                    <TwinInputBox>
-                      <TwinLabelRow>
-                        <Label>태명</Label>
-                        <RemoveBtn onPress={removeTwin}>
-                          <MinusIcon width={16} height={16} />
-                        </RemoveBtn>
-                      </TwinLabelRow>
+                    <InputBox>
+                      <Label>태명</Label>
                       <Input
                         placeholder="태명을 입력하세요"
-                        value={twinBabyName}
-                        onChangeText={setTwinBabyName}
+                        value={babyname}
+                        onChangeText={setBabyname}
                       />
-                    </TwinInputBox>
-                  )}
+                    </InputBox>
 
-                  {!showTwinInput && (
-                    <TwinButton onPress={addTwin}>
-                      <TwinButtonText>+ 쌍둥이 추가하기</TwinButtonText>
-                    </TwinButton>
-                  )}
-                </FormContainer>
-              </Content>
-            );
-          } else {
-            return (
-              <Content>
-                <Title>{item.title}</Title>
-                <Description>{item.description}</Description>
+                    {showTwinInput && (
+                      <TwinInputBox>
+                        <TwinLabelRow>
+                          <Label>태명</Label>
+                          <RemoveBtn onPress={removeTwin}>
+                            <MinusIcon width={16} height={16} />
+                          </RemoveBtn>
+                        </TwinLabelRow>
+                        <Input
+                          placeholder="태명을 입력하세요"
+                          value={twinBabyName}
+                          onChangeText={setTwinBabyName}
+                        />
+                      </TwinInputBox>
+                    )}
 
-                {item.image && (
-                  <TutorialImage source={item.image} resizeMode="cover" />
-                )}
-              </Content>
-            );
-          }
-        }}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={e => {
-          const newPage = Math.round(e.nativeEvent.contentOffset.x / width);
-          setPage(newPage);
-        }}
-      />
+                    {!showTwinInput && (
+                      <TwinButton onPress={addTwin}>
+                        <TwinButtonText>+ 쌍둥이 추가하기</TwinButtonText>
+                      </TwinButton>
+                    )}
+                  </FormContainer>
+                </Content>
+              );
+            } else {
+              return (
+                <Content>
+                  <Title>{item.title}</Title>
+                  <Description>{item.description}</Description>
+
+                  {item.image && (
+                    <TutorialImage source={item.image} resizeMode="cover" />
+                  )}
+                </Content>
+              );
+            }
+          }}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={e => {
+            const newPage = Math.round(e.nativeEvent.contentOffset.x / width);
+            setPage(newPage);
+          }}
+        />
+      </KeyboardAvoidingView>
 
       <NextButton onPress={handleNext}>
         <NextText>

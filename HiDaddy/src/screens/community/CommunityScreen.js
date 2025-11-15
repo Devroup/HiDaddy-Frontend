@@ -126,7 +126,7 @@ const CommunityScreen = () => {
         <CommunityMain>
           <CommunityMainTitle>
             <MainTitle>아빠들의 이야기</MainTitle>
-            <Touchable
+            <TouchableWrite
               onPress={() =>
                 navigation.navigate('CommunityStackNavigator', {
                   screen: 'CommunityWriteScreen',
@@ -134,7 +134,7 @@ const CommunityScreen = () => {
               }
             >
               <Write width={35} height={35} />
-            </Touchable>
+            </TouchableWrite>
           </CommunityMainTitle>
         </CommunityMain>
 
@@ -169,13 +169,15 @@ const CommunityMain = styled.View`
 
 const CommunityMainTitle = styled.View`
   flex-direction: row;
-  gap: ${width * 0.34}px;
+  justify-content: space-between;
+  align-items: center;
 `;
 
 const MainTitle = styled(HmmBText)`
-  font-size: 24px;
+  font-size: ${width * 0.06}px;
   color: ${colors.black};
 `;
+const TouchableWrite = styled.TouchableOpacity``;
 
 const Touchable = styled.TouchableOpacity`
   flex-direction: row;
