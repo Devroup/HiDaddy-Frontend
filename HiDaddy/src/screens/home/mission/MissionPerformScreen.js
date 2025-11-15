@@ -38,7 +38,13 @@ const MissionPerformScreen = () => {
           text: '카메라',
           onPress: async () => {
             try {
-              const result = await launchCamera({ mediaType: 'photo', saveToPhotos: true });
+              const result = await launchCamera({
+                mediaType: 'photo',
+                saveToPhotos: true,
+                maxWidth: 800,
+                maxHeight: 800,
+                quality: 0.8,
+              });
               if (result.didCancel) return;
               if (result.assets && result.assets.length > 0) {
                 setPhotoUri(result.assets[0].uri);
@@ -52,7 +58,12 @@ const MissionPerformScreen = () => {
           text: '갤러리',
           onPress: async () => {
             try {
-              const result = await launchImageLibrary({ mediaType: 'photo' });
+              const result = await launchImageLibrary({
+                mediaType: 'photo',
+                maxWidth: 800,
+                maxHeight: 800,
+                quality: 0.8,
+              });
               if (result.didCancel) return;
               if (result.assets && result.assets.length > 0) {
                 setPhotoUri(result.assets[0].uri);

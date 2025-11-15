@@ -18,7 +18,7 @@ const { width } = Dimensions.get('window');
 
 const MissionScreen = () => {
     const navigation = useNavigation();
-    const [missionTitle, setMissionTitle] = useState('');
+    const [missionTitle, setMissionTitle] = useState('오늘의 미션을 준비하고 있어요...');
     const [currentMissionId, setCurrentMissionId] = useState(null);
     const [doneMissions, setDoneMissions] = useState([]);
     const [alreadyDone, setAlreadyDone] = useState(false);
@@ -86,22 +86,33 @@ const MissionScreen = () => {
             Alert.alert('완료', '메시지가 전송되었습니다.');
             setMessageText('');
         } catch (error) {
-            // console.error('메시지 전송 실패:', error.response?.data || error.message);
-            Alert.alert(
-                '아내 전화번호 등록 필요',
-                '메시지를 보내려면 아내의 전화번호가 필요합니다.\n마이페이지 > 내 정보에서 등록해주세요.',
-                [
-                    { text: '취소', style: 'cancel' },
-                    {
-                        text: '설정하러 가기',
-                        onPress: () => {
-                            navigation.navigate('MypageStackNavigator', {
-                                screen: 'MyInfoScreen'
-                            });
+            console.log('메시지 전송 실패:', error.response?.data);
+            if(error.response?.data?.status == 400) {
+                Alert.alert(
+                    '아내 전화번호 등록 필요',
+                    '메시지를 보내려면 아내의 전화번호가 필요합니다.\n마이페이지 > 내 정보에서 등록해주세요.',
+                    [
+                        { text: '취소', style: 'cancel' },
+                        {
+                            text: '설정하러 가기',
+                            onPress: () => {
+                                navigation.navigate('MypageStackNavigator', {
+                                    screen: 'MyInfoScreen'
+                                });
+                            }
                         }
-                    }
-                ]
-            );
+                    ]
+                );
+            }
+            else {
+                Alert.alert(
+                    '앗, 문제가 발생했어요',
+                    '잠시 후 다시 시도해주세요.',
+                    [
+                        { text: '확인', style: 'cancel' },
+                    ]
+                );
+            }
         }
     };
 
@@ -145,10 +156,13 @@ const MissionScreen = () => {
                         </MissionMainTitle>
                         <MissionMainList>
                             <TouchableRow
-                                onPress={handleMissionPress}
+                                onPress={currentMissionId ? handleMissionPress : null}
+                                disabled={!currentMissionId}
                             >
-                                <MissionText>{missionTitle}</MissionText>
-                                <RightArrow width={20} height={20}/>
+                                <MissionText style={{ opacity: currentMissionId ? 1 : 0.5 }}>
+                                    {missionTitle}
+                                </MissionText>
+                                <RightArrow width={20} height={20} opacity={currentMissionId ? 1 : 0.5}/>
                             </TouchableRow>
                         </MissionMainList>
                     </MissionMain>
@@ -294,6 +308,7 @@ const MissionDoneList = styled.View`
 const DoneListText = styled(HmmText)`
     font-size: ${width * 0.04}px;
     flex-direction: row;
+    margin-left: 8px;
 `;
 
 const DoneListRow = styled.View`

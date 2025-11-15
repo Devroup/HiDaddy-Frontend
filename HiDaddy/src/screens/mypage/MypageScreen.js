@@ -121,7 +121,7 @@ const MypageScreen = ({ navigation: { navigate } }) => {
         <MenuContainer>
           <AppInfoRow>
             <AppInfoText>앱 버전</AppInfoText>
-            <AppInfoValue>2.4.1</AppInfoValue>
+            <AppInfoValue>0.9.0</AppInfoValue>
           </AppInfoRow>
           <MenuItem>
             <MenuText>서비스 이용약관</MenuText>

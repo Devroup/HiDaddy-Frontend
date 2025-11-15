@@ -1,6 +1,6 @@
 import React, { useState, useLayoutEffect, useEffect } from 'react';
 import styled from 'styled-components/native';
-import { Dimensions, Alert, TouchableOpacity, Image } from 'react-native';
+import { Dimensions, Alert, TouchableOpacity, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import * as ImagePicker from 'react-native-image-picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
@@ -100,43 +100,54 @@ const CommunityWriteScreen = () => {
   }, [navigation, handleSubmit, loading]);
 
   return (
-    <Wrapper>
-      <Content>
-        <CommunityTopSection>
-          <CommunityWriteMain>
-            <CommunityContent>
-              <ContentInput
-                placeholder="타인을 비방하고 저격하는 게시글, 광고성 게시글 등 부적절한 글 작성 시 커뮤니티 활동에 제한을 받을 수 있습니다."
-                placeholderTextColor="#999"
-                multiline
-                textAlignVertical="top"
-                value={content}
-                onChangeText={setContent}
-                editable={!loading}
-              />
-            </CommunityContent>
-          </CommunityWriteMain>
-        </CommunityTopSection>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <Wrapper>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Content>
+            <CommunityTopSection>
+              <CommunityWriteMain>
+                <CommunityContent>
+                  <ContentInput
+                    placeholder="타인을 비방하고 저격하는 게시글, 광고성 게시글 등 부적절한 글 작성 시 커뮤니티 활동에 제한을 받을 수 있습니다."
+                    placeholderTextColor="#999"
+                    multiline
+                    textAlignVertical="top"
+                    value={content}
+                    onChangeText={setContent}
+                    editable={!loading}
+                  />
+                </CommunityContent>
+              </CommunityWriteMain>
+            </CommunityTopSection>
 
-        <CommunitySubContent>
-          <TouchableOpacity onPress={selectImage} disabled={loading}>
-            <CommunityAddImg>
-              {imageUri ? (
-                <>
-                  <ImagePreview source={{ uri: imageUri }} />
-                  <AttachText>이미지 첨부됨</AttachText>
-                </>
-              ) : (
-                <GalleryRow>
-                  <AttachText>이미지 첨부하기</AttachText>
-                  <Gallery width={30} height={30} />
-                </GalleryRow>
-              )}
-            </CommunityAddImg>
-          </TouchableOpacity>
-        </CommunitySubContent>
-      </Content>
-    </Wrapper>
+            <CommunitySubContent>
+              <TouchableOpacity onPress={selectImage} disabled={loading}>
+                <CommunityAddImg>
+                  {imageUri ? (
+                    <>
+                      <ImagePreview source={{ uri: imageUri }} />
+                      <AttachText>이미지 첨부됨</AttachText>
+                    </>
+                  ) : (
+                    <GalleryRow>
+                      <AttachText>이미지 첨부하기</AttachText>
+                      <Gallery width={30} height={30} />
+                    </GalleryRow>
+                  )}
+                </CommunityAddImg>
+              </TouchableOpacity>
+            </CommunitySubContent>
+          </Content>
+        </ScrollView>
+      </Wrapper>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -173,18 +184,18 @@ const ContentInput = styled.TextInput`
 const CommunitySubContent = styled.View`
   border-top-width: 1px;
   border-top-color: ${colors.gray200};
+  padding-top: ${width * 0.01}px;
 `;
 
 const CommunityAddImg = styled.View`
-  margin-top: ${width * 0.05}px;
-  align-items: flex-end;
+  padding: ${width * 0.02}px 0;
 `;
 
 const GalleryRow = styled.View`
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
-  width: 100%;
+  justify-content: space-between;
+  gap: ${width * 0.03}px;
 `;
 
 const ImagePreview = styled.Image`

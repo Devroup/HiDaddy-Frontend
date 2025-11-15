@@ -52,6 +52,7 @@ const config = {
     FIX_POST: postId => `${BASE_URL}/api/community/${postId}`,
     DEL_POST: postId => `${BASE_URL}/api/community/${postId}`,
     POST_LIKE: postId => `${BASE_URL}/api/community/${postId}/like`,
+    REPORT_POST: postId => `${BASE_URL}/api/community/${postId}/report`,
     GET_COMMENT: postId => `${BASE_URL}/api/community/${postId}/comments`,
     CREATE_COMMENT: postId => `${BASE_URL}/api/community/${postId}/comments`,
     FIX_COMMENT: (postId, commentId) =>
@@ -60,6 +61,8 @@ const config = {
       `${BASE_URL}/api/community/${postId}/comments/${commentId}`,
     COMMENT_LIKE: (postId, commentId) =>
       `${BASE_URL}/api/community/${postId}/comments/${commentId}/like`,
+    REPORT_COMMENT: (postId, commentId) =>
+      `${BASE_URL}/api/community/${postId}/comments/${commentId}/report`,
   },
 
   WEEKLY: {

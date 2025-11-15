@@ -8,6 +8,7 @@ import { HmmText, HmmBText } from '../../components/CustomText';
 import config from '../../constants/config';
 import { get } from '../../services/api';
 
+import HeartYellow from '../../assets/imgs/icons/heart_yellow.svg';
 import Cloud from '../../assets/imgs/icons/cloud.svg';
 import RightArrow from '../../assets/imgs/icons/right_arrow';
 import Bot from '../../assets/imgs/icons/bot.svg';
@@ -113,6 +114,7 @@ const HomeScreen = () => {
             })
           }
         >
+          <HeartYellow width={24} height={24}/>
           <RowText>주차별 정보 알아보기</RowText>
           <RightArrow width={24} height={24} />
         </TouchableRow>
@@ -145,6 +147,7 @@ const HomeScreen = () => {
             })
           }
         >
+          <HeartYellow width={24} height={24}/>
           <RowText>미션 & 메시지 보내기</RowText>
           <RightArrow width={24} height={24} />
         </TouchableRow>
@@ -217,7 +220,7 @@ const Explain = styled(HmmText)`
   font-size: ${width * 0.038}px;
   color: ${colors.black};
   line-height: 20px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   width: ${width * 0.5}px;
 `;
 
