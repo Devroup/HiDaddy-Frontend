@@ -114,6 +114,17 @@ const CommunityDetailScreen = () => {
 
   const handleEditPost = () => navigation.navigate('CommunityWriteScreen', { post });
   const handleDeletePost = async () => { try { await del(config.COMMUNITY.DEL_POST(postId)); navigation.goBack(); } catch (err) { console.log('게시글 삭제 실패:', err); } };
+  const handleReportPost = async () => {
+    try {
+      const reportResponse = await apiPost(config.COMMUNITY.REPORT_POST(postId));
+      Alert.alert('신고 완료', `${reportResponse.message}`);
+    } catch (err) {
+      console.log('게시글 신고 실패:', err);
+      console.log('에러 응답:', err.response?.data);
+      Alert.alert('신고 실패', err.response?.data?.message || '잠시 후 다시 시도해주세요.');
+    }
+  };
+
   const openMenu = () => Alert.alert('메뉴', '', [
     { text: '수정', onPress: handleEditPost },
     { text: '삭제', onPress: () => Alert.alert('삭제 확인', '정말 삭제하시겠습니까?', [
@@ -123,10 +134,31 @@ const CommunityDetailScreen = () => {
     { text: '취소', style: 'cancel' },
   ]);
 
+  const openReportMenu = () => Alert.alert('신고', '이 게시글을 신고하시겠습니까?', [
+    { text: '취소', style: 'cancel' },
+    { text: '신고', style: 'destructive', onPress: handleReportPost },
+  ]);
+
   const handleCommentMenu = (comment) => Alert.alert('댓글 메뉴', '', [
     { text: '수정', onPress: () => handleEditComment(comment) },
     { text: '삭제', onPress: () => handleDeleteComment(comment) },
     { text: '취소', style: 'cancel' },
+  ]);
+
+  const handleReportComment = async (comment) => {
+    try {
+      const reportResponse = await apiPost(config.COMMUNITY.REPORT_COMMENT(postId, comment.id));
+      Alert.alert('신고 완료', `${reportResponse.message}`);
+    } catch (err) {
+      console.log('댓글 신고 실패:', err);
+      console.log('에러 응답:', err.response?.data);
+      Alert.alert('신고 실패', err.response?.data?.message || '잠시 후 다시 시도해주세요.');
+    }
+  };
+
+  const openReportCommentMenu = (comment) => Alert.alert('신고', '이 댓글을 신고하시겠습니까?', [
+    { text: '취소', style: 'cancel' },
+    { text: '신고', style: 'destructive', onPress: () => handleReportComment(comment) },
   ]);
 
   const handleEditComment = (comment) => {
@@ -184,9 +216,11 @@ const CommunityDetailScreen = () => {
             </MainProfileText>
           </MainProfileLeft>
 
-          {currentUser && post.authorId === currentUser.userId && (
+          {currentUser && (
             <MainProfileFix>
-              <TouchableOpacity onPress={openMenu}><Dot width={24} height={24} /></TouchableOpacity>
+              <TouchableOpacity onPress={post.authorId === currentUser.userId ? openMenu : openReportMenu}>
+                <Dot width={24} height={24} />
+              </TouchableOpacity>
             </MainProfileFix>
           )}
         </CommunityMainProfile>
@@ -224,8 +258,10 @@ const CommunityDetailScreen = () => {
                 <TouchableOpacity style={{ marginRight: 8 }} onPress={() => handleToggleCommentLike(c)}>
                   {c?.liked ? <Heartlike width={20} height={20} /> : <EmptyHeartlike width={20} height={20} />}
                 </TouchableOpacity>
-                {currentUser && c.authorId === currentUser.userId && (
-                  <TouchableOpacity onPress={() => handleCommentMenu(c)}><Dot width={20} height={20} /></TouchableOpacity>
+                {currentUser && (
+                  <TouchableOpacity onPress={c.authorId === currentUser.userId ? () => handleCommentMenu(c) : () => openReportCommentMenu(c)}>
+                    <Dot width={20} height={20} />
+                  </TouchableOpacity>
                 )}
               </CommentActions>
             </CommentsRow>
