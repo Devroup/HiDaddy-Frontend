@@ -10,8 +10,8 @@
 # Release signing config
 MYAPP_RELEASE_STORE_FILE=hidaddy-release-key.keystore
 MYAPP_RELEASE_KEY_ALIAS=hidaddy-key-alias
-MYAPP_RELEASE_STORE_PASSWORD=hidaddy2024!
-MYAPP_RELEASE_KEY_PASSWORD=hidaddy2024!
+MYAPP_RELEASE_STORE_PASSWORD=패스워드
+MYAPP_RELEASE_KEY_PASSWORD=패스워드
 ```
 
 ## 2. build.gradle 설정
@@ -94,9 +94,9 @@ android/app/build/outputs/apk/release/app-release.apk
 ## 주요 파일 정보
 
 - **Keystore 파일**: `android/app/hidaddy-release-key.keystore`
-- **Keystore 비밀번호**: `hidaddy2024!`
+- **Keystore 비밀번호**: `패스워드`
 - **Key Alias**: `hidaddy-key-alias`
-- **Key 비밀번호**: `hidaddy2024!`
+- **Key 비밀번호**: `패스워드`
 
 ## 보안 주의사항
 
